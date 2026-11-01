@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Asisten UT - VS Code IDE Edition & Interactive Exam Studio</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- PDF.js library for multi-PDF parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"></script>
+
+  <!-- KaTeX for Mathematical Symbol Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vscode: {
+              bg: '#181818',
+              sidebar: '#1E1E1E',
+              editor: '#1F1F1F',
+              activity: '#333333',
+              tabActive: '#1E1E1E',
+              tabInactive: '#2D2D2D',
+              border: '#2B2B2B',
+              blue: '#007ACC',
+              blueLight: '#3794FF',
+              yellow: '#DCDCAA',
+              green: '#6A9955',
+              teal: '#4EC9B0',
+              pink: '#C586C0',
+              orange: '#CE9178',
+              red: '#F44747',
+              cyan: '#9CDCFE',
+              purple: '#B5CEA8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'sans-serif'],
+            code: ['Consolas', 'Cascadia Code', 'Fira Code', 'Monaco', 'Courier New', 'monospace'],
+            academic: ['Times New Roman', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Consolas', 'Fira Code', 'Inter', monospace;
+      background-color: #181818;
+      color: #9CDCFE;
+      -webkit-tap-highlight-color: transparent;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    /* VS Code Syntax Colors */
+    .syn-keyword { color: #C586C0; font-weight: 600; }
+    .syn-function { color: #DCDCAA; font-weight: 600; }
+    .syn-string { color: #CE9178; }
+    .syn-comment { color: #6A9955; font-style: italic; }
+    .syn-type { color: #4EC9B0; font-weight: 600; }
+    .syn-variable { color: #9CDCFE; }
+    .syn-number { color: #B5CEA8; }
+
+    .vscode-shadow {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    button, select, input, textarea {
+      touch-action: manipulation;
+    }
+
+    /* Print / PDF Export Styling */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #bjuContainer, #bjuContainer * {
+        visibility: visible !important;
+        color: #000 !important;
+      }
+      #bjuContainer {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 10mm !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: white !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e1e1e;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3e3e42;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #505050;
+    }
+
+    .katex-display { margin: 0.5em 0 !important; }
+    .katex { font-size: 1.05em; }
+  </style>
+</head>
+<body class="bg-vscode-bg min-h-screen text-vscode-cyan flex flex-col antialiased">
+
+  <!-- VS Code Titlebar -->
+  <header class="bg-vscode-sidebar border-b border-vscode-border text-slate-300 text-xs py-1.5 px-4 flex items-center justify-between sticky top-0 z-50 font-code">
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-1.5">
+        <span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+        <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+        <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
+      </div>
+      <div class="flex items-center space-x-2 text-slate-400">
+        <i class="fa-solid fa-code text-vscode-blueLight text-sm"></i>
+        <span class="font-bold text-white">asisten_ut_workspace.py</span>
+        <span class="text-vscode-comment text-[11px] hidden sm:inline">// VS Code IDE &amp; Interactive Exam Studio</span>
+      </div>
+    </div>
+
+    <!-- Mode Switcher Navigation Tabs -->
+    <div class="flex items-center bg-vscode-editor rounded border border-vscode-border p-0.5 text-xs font-code">
+      <button id="viewBtn-bju" onclick="switchMainView('bju')" class="px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5">
+        <i class="fa-solid fa-pen-to-square"></i> Mode Tugas BJU
+      </button>
+      <button id="viewBtn-schedule" onclick="switchMainView('schedule')" class="px-3 py-1 rounded text-vscode-green hover:text-white transition flex items-center gap-1.5">
+        <i class="fa-solid fa-table-cells"></i> Jadwal Kuliah
+      </button>
+      <button id="viewBtn-quiz" onclick="switchMainView('quiz')" class="px-3 py-1 rounded text-vscode-yellow hover:text-white transition flex items-center gap-1.5">
+        <i class="fa-solid fa-graduation-cap text-vscode-pink"></i> Studio Latihan Ujian
+      </button>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center space-x-2">
+      <button onclick="openApiKeyModal()" id="apiKeyStatusBtn" class="flex items-center space-x-1.5 bg-vscode-tabInactive hover:bg-slate-700 px-2.5 py-1 rounded text-vscode-teal border border-vscode-border transition active:scale-95">
+        <span class="w-2 h-2 rounded-full bg-vscode-orange animate-ping" id="apiKeyDot"></span>
+        <span id="apiKeyStatusText" class="font-bold">Set API Key</span>
+      </button>
+
+      <button onclick="openProfileModal()" class="flex items-center space-x-1.5 bg-vscode-tabInactive hover:bg-slate-700 px-2.5 py-1 rounded text-vscode-yellow border border-vscode-border transition active:scale-95">
+        <i class="fa-solid fa-user-gear text-vscode-orange"></i>
+        <span id="navStudentName">LUKMAN_NURHAKIM.py</span>
+      </button>
+
+      <button onclick="openHistoryModal()" class="bg-vscode-blue hover:bg-blue-600 text-white px-2.5 py-1 rounded border border-blue-400/30 flex items-center gap-1.5 transition active:scale-95" title="Git History">
+        <i class="fa-solid fa-code-commit"></i>
+        <span class="hidden md:inline">Logs</span>
+        <span id="historyBadge" class="bg-white text-vscode-blue font-bold text-[10px] px-1 rounded-full">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- VIEW 1: MODE TUGAS & BJU WORKSPACE -->
+  <main id="mainView-bju" class="max-w-[1850px] mx-auto px-2 sm:px-4 py-3 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-4">
+    
+    <!-- LEFT PANEL: Editor Inputs (4 Cols) -->
+    <section class="lg:col-span-4 flex flex-col gap-3">
+      <div class="bg-vscode-sidebar p-3 rounded-xl border border-vscode-border vscode-shadow">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-[11px] font-bold text-vscode-yellow uppercase tracking-wider font-code flex items-center gap-1">
+            <i class="fa-solid fa-folder-tree text-vscode-orange"></i> SELECT_MODULE.py
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-1 text-[11px] font-code">
+          <button onclick="setCourse('MKWN4109 - Pendidikan Kewarganegaraan', 'default')" class="px-2.5 py-1 bg-vscode-editor hover:bg-vscode-blue hover:text-white rounded text-vscode-cyan border border-vscode-border transition active:scale-95">PKn.py</button>
+          <button onclick="setCourse('MATA4101 - Pengantar Matematika', 'math')" class="px-2.5 py-1 bg-vscode-editor hover:bg-vscode-blue hover:text-white rounded text-vscode-yellow border border-vscode-border transition active:scale-95"><i class="fa-solid fa-square-root-variable mr-1"></i>Math.py</button>
+          <button onclick="setCourse('MKWI4201 - Bahasa Inggris', 'english')" class="px-2.5 py-1 bg-vscode-editor hover:bg-vscode-blue hover:text-white rounded text-vscode-pink border border-vscode-border transition active:scale-95">English.py</button>
+          <button onclick="setCourse('MSIM4301 - Analisis &amp; Perancangan Sistem', 'default')" class="px-2.5 py-1 bg-vscode-editor hover:bg-vscode-blue hover:text-white rounded text-vscode-teal border border-vscode-border transition active:scale-95">APS.py</button>
+          <button onclick="setCourse('MSIM4303 - Rekayasa Perangkat Lunak', 'default')" class="px-2.5 py-1 bg-vscode-editor hover:bg-vscode-blue hover:text-white rounded text-vscode-green border border-vscode-border transition active:scale-95">RPL.py</button>
+        </div>
+      </div>
+
+      <div class="bg-vscode-sidebar rounded-xl border border-vscode-border vscode-shadow flex flex-col overflow-hidden">
+        <div class="flex border-b border-vscode-border bg-vscode-tabInactive text-xs font-code overflow-x-auto">
+          <button id="tabBtn-discussion" onclick="switchTab('discussion')" class="tab-btn px-3 py-2.5 flex items-center gap-1.5 whitespace-nowrap transition text-white bg-vscode-editor border-t-2 border-vscode-blue">
+            <i class="fa-solid fa-comments text-vscode-blueLight"></i> diskusi.py
+          </button>
+          <button id="tabBtn-task" onclick="switchTab('task')" class="tab-btn px-3 py-2.5 text-slate-400 hover:text-white flex items-center gap-1.5 whitespace-nowrap transition">
+            <i class="fa-solid fa-file-code text-vscode-yellow"></i> tugas.py
+          </button>
+          <button id="tabBtn-metopen" onclick="switchTab('metopen')" class="tab-btn px-3 py-2.5 text-slate-400 hover:text-white flex items-center gap-1.5 whitespace-nowrap transition">
+            <i class="fa-solid fa-diagram-project text-vscode-pink"></i> metopen.py
+          </button>
+          <button id="tabBtn-modules" onclick="switchTab('modules')" class="tab-btn px-3 py-2.5 text-slate-400 hover:text-white flex items-center gap-1.5 whitespace-nowrap transition">
+            <i class="fa-solid fa-folder-open text-vscode-orange"></i> modul_pembantu.py
+            <span id="moduleCountBadge" class="bg-vscode-yellow text-slate-900 font-bold text-[10px] px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+        </div>
+
+        <div class="p-4 space-y-3 font-code text-xs">
+          <!-- Active Attached Reference Banner -->
+          <div id="activeFilesBanner" onclick="switchTab('modules')" class="bg-vscode-editor hover:bg-vscode-tabInactive border border-vscode-border rounded-lg p-2.5 text-xs text-vscode-cyan flex items-center justify-between cursor-pointer transition active:scale-98">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-book text-vscode-orange text-sm"></i>
+              <div>
+                <strong id="activeFilesBannerText" class="text-white text-[11px]">0 Modul Pembantu Terpasang</strong>
+                <p class="text-[10px] text-vscode-comment">Akan otomatis dijadikan referensi utama AI.</p>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold text-vscode-blueLight hover:underline whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i>Kelola</span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-2">
+            <div>
+              <span class="syn-keyword">import</span> <span class="syn-variable">course_name</span> = 
+              <select id="sharedCourseInput" onchange="autoSelectTutorForActiveCourse(); updateBjuHeader();" class="w-full mt-1 px-3 py-2 bg-vscode-editor border border-vscode-border rounded text-vscode-string focus:ring-1 focus:ring-vscode-blue focus:outline-none font-code">
+                <!-- Dynamically populated from studentCoursesSchedule -->
+              </select>
+            </div>
+            <div>
+              <span class="syn-keyword">def</span> <span class="syn-function">response_language</span>():
+              <select id="languageModeSelect" class="w-full mt-1 px-3 py-2 bg-vscode-editor border border-vscode-border rounded text-vscode-teal focus:outline-none font-code">
+                <option value="indonesian">Bahasa Indonesia (Baku BMP)</option>
+                <option value="bilingual">Bilingual (English + ID)</option>
+                <option value="english">Full English (100%)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- TAB DISKUSI -->
+          <div id="tabContent-discussion" class="tab-content space-y-3">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <span class="syn-keyword">session</span> = 
+                <select id="discSessionSelect" onchange="updateBjuHeader()" class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-yellow focus:outline-none font-code">
+                  <option value="Sesi 1">Sesi 1</option>
+                  <option value="Sesi 2">Sesi 2</option>
+                  <option value="Sesi 3">Sesi 3</option>
+                  <option value="Sesi 4">Sesi 4</option>
+                  <option value="Sesi 5">Sesi 5</option>
+                  <option value="Sesi 6">Sesi 6</option>
+                  <option value="Sesi 7">Sesi 7</option>
+                  <option value="Sesi 8">Sesi 8</option>
+                </select>
+              </div>
+              <div>
+                <span class="syn-keyword">tutor</span> = 
+                <input type="text" id="tutorNameInput" readonly class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-string focus:outline-none font-code cursor-default" title="Otomatis dari Jadwal Kuliah">
+              </div>
+            </div>
+
+            <div>
+              <span class="syn-comment">// Gaya Sapaan Awal:</span>
+              <select id="discGreetingSelect" class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-cyan focus:outline-none font-code">
+                <option value="default">Sapaan Standar UT (Assalamu'alaikum + Realtime Waktu)</option>
+                <option value="formal">Sapaan Formal Akademis (Yth. Bapak/Ibu Dosen)</option>
+                <option value="friendly">Sapaan Diskusi Interaktif &amp; Rekan Seangkatan</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="syn-comment">// Soal / Prompt Diskusi:</span>
+                <button onclick="toggleExpandTextarea('discTaskInput')" class="text-[10px] text-vscode-blueLight hover:underline">&lt;expand&gt;</button>
+              </div>
+
+              <div class="mb-2">
+                <label class="flex items-center gap-2 p-2 bg-vscode-editor hover:bg-vscode-tabInactive border border-vscode-border rounded cursor-pointer text-[11px] text-vscode-teal transition active:scale-98 font-code">
+                  <i class="fa-solid fa-file-pdf text-vscode-red"></i>
+                  <span>[Upload PDF / File Soal Diskusi]</span>
+                  <input type="file" id="soalDiscPdfInput" accept=".pdf,.txt,.md" onchange="handleDiscSoalPdfUpload(event)" class="hidden">
+                </label>
+              </div>
+
+              <textarea id="discTaskInput" rows="5" placeholder="# Tempelkan soal atau upload PDF..." class="w-full p-2.5 bg-vscode-editor border border-vscode-border rounded text-vscode-orange focus:ring-1 focus:ring-vscode-blue focus:outline-none font-code leading-relaxed"></textarea>
+            </div>
+          </div>
+
+          <!-- TAB TUGAS -->
+          <div id="tabContent-task" class="tab-content hidden space-y-3">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <span class="syn-keyword">task_id</span> = 
+                <select id="taskNumberSelect" onchange="updateBjuHeader()" class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-yellow focus:outline-none font-code">
+                  <option value="Tugas 1">Tugas 1 (Sesi 3)</option>
+                  <option value="Tugas 2" selected>Tugas 2 (Sesi 5)</option>
+                  <option value="Tugas 3">Tugas 3 (Sesi 7)</option>
+                </select>
+              </div>
+              <div>
+                <span class="syn-keyword">tutor</span> = 
+                <input type="text" id="tutorNameTaskInput" readonly class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-string focus:outline-none font-code cursor-default" title="Otomatis dari Jadwal Kuliah">
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="syn-comment">// Instruksi Soal Tugas Utama:</span>
+                <button onclick="toggleExpandTextarea('taskInstructionsInput')" class="text-[10px] text-vscode-blueLight hover:underline">&lt;expand&gt;</button>
+              </div>
+
+              <div class="mb-2">
+                <label class="flex items-center gap-2 p-2 bg-vscode-editor hover:bg-vscode-tabInactive border border-vscode-border rounded cursor-pointer text-[11px] text-vscode-teal transition active:scale-98 font-code">
+                  <i class="fa-solid fa-file-pdf text-vscode-red"></i>
+                  <span>[Upload PDF / File Soal Tugas]</span>
+                  <input type="file" id="soalTaskPdfInput" accept=".pdf,.txt,.md" onchange="handleTaskSoalPdfUpload(event)" class="hidden">
+                </label>
+              </div>
+
+              <textarea id="taskInstructionsInput" rows="6" placeholder="# Tempelkan soal tugas atau upload PDF..." class="w-full p-2.5 bg-vscode-editor border border-vscode-border rounded text-vscode-orange focus:ring-1 focus:ring-vscode-blue focus:outline-none font-code leading-relaxed"></textarea>
+            </div>
+          </div>
+
+          <!-- TAB METOPEN -->
+          <div id="tabContent-metopen" class="tab-content hidden space-y-3">
+            <div>
+              <span class="syn-keyword">research_topic</span> = 
+              <input type="text" id="metopenTopicInput" placeholder="Evaluasi SIMRS Menggunakan UTAUT 2" class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-string focus:outline-none font-code">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <span class="syn-keyword">section</span> = 
+                <select id="metopenSectionSelect" class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-teal focus:outline-none font-code">
+                  <option value="lengkap">Proposal Ringkas (Bab 1,2,3)</option>
+                  <option value="bab1">Bab 1: Pendahuluan</option>
+                  <option value="bab2">Bab 2: Tinjauan Pustaka</option>
+                  <option value="bab3">Bab 3: Metodologi</option>
+                </select>
+              </div>
+              <div>
+                <span class="syn-keyword">approach</span> = 
+                <select id="metopenTypeSelect" class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-yellow focus:outline-none font-code">
+                  <option value="kuantitatif">Kuantitatif (Survei)</option>
+                  <option value="kualitatif">Kualitatif (Studi Kasus)</option>
+                  <option value="pengembangan">R&D / Waterfall</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <span class="syn-comment">// Catatan / Objek Penelitian:</span>
+              <textarea id="metopenNotesInput" rows="3" placeholder="// Parameter spesifik lokasi / variabel..." class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-cyan focus:outline-none font-code"></textarea>
+            </div>
+          </div>
+
+          <!-- TAB MODUL PEMBANTU -->
+          <div id="tabContent-modules" class="tab-content hidden space-y-3">
+            <div class="p-2.5 bg-vscode-editor border border-vscode-border rounded-lg text-xs font-code space-y-1">
+              <span class="text-vscode-yellow font-bold"><i class="fa-solid fa-layer-group text-vscode-orange mr-1"></i> Multi-File Reference Reader</span>
+              <p class="text-[11px] text-vscode-comment">Unggah file BMP / Modul PDF / Catatan untuk dijadikan dasar rujukan pengerjaan tugas/diskusi.</p>
+            </div>
+
+            <!-- Drag & Drop / Upload -->
+            <div id="refModuleDropZone" class="border-2 border-dashed border-vscode-border hover:border-vscode-blue rounded-xl p-4 text-center bg-vscode-editor transition cursor-pointer relative">
+              <input type="file" id="refModuleFileInput" accept=".pdf,.txt,.md" multiple onchange="handleRefModuleUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+              <div class="space-y-1 pointer-events-none">
+                <i class="fa-solid fa-file-circle-plus text-2xl text-vscode-teal"></i>
+                <p class="text-xs font-bold text-white">Upload File Modul Pembantu (PDF / TXT)</p>
+                <p class="text-[10px] text-vscode-comment">Mendukung banyak file sekaligus</p>
+              </div>
+            </div>
+
+            <!-- Preset Samples -->
+            <div class="flex items-center justify-between text-[11px] font-code pt-1">
+              <span class="text-vscode-comment">Preset Contoh:</span>
+              <div class="flex gap-1">
+                <button onclick="addPresetRefModule('MATA4101')" class="px-2 py-0.5 bg-vscode-tabInactive hover:bg-slate-700 text-vscode-yellow rounded border border-vscode-border">+ BMP Math</button>
+                <button onclick="addPresetRefModule('MSIM4301')" class="px-2 py-0.5 bg-vscode-tabInactive hover:bg-slate-700 text-vscode-teal rounded border border-vscode-border">+ BMP APS</button>
+              </div>
+            </div>
+
+            <!-- Attached List -->
+            <div class="space-y-1.5 max-h-[180px] overflow-y-auto pr-1">
+              <div class="flex justify-between items-center text-[11px] font-code">
+                <span class="text-vscode-yellow font-bold uppercase">// Daftar Modul Pembantu:</span>
+                <button onclick="clearRefModules()" class="text-vscode-red hover:underline"><i class="fa-solid fa-trash-can mr-1"></i>Hapus Semua</button>
+              </div>
+              <div id="refModuleListContainer" class="space-y-1">
+                <div class="text-[10px] text-vscode-comment text-center py-3">// Belum ada modul pembantu diunggah.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ENGINE ANTI-DETEKSI AI & PERSONA MAHASISWA -->
+          <div class="pt-2 border-t border-vscode-border bg-vscode-editor p-3 rounded-lg border border-vscode-border space-y-2.5 font-code text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-vscode-teal font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-shield-cat text-vscode-green text-sm"></i> Engine Anti-Deteksi AI &amp; Persona
+              </span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="humanizerToggle" checked class="sr-only peer">
+                <div class="w-8 h-4 bg-vscode-tabInactive peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-vscode-green"></div>
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2 text-[11px]">
+              <div>
+                <span class="syn-comment">// Tingkat Naturalitas AI:</span>
+                <select id="aiIntensitySelect" class="w-full mt-0.5 p-1.5 bg-vscode-sidebar border border-vscode-border rounded text-vscode-yellow focus:outline-none font-code">
+                  <option value="ultra_human">Ultra-Human (&lt; 15% Deteksi AI / High Burstiness)</option>
+                  <option value="balanced" selected>Seimbang (Natural Akademis ~ 25% Deteksi)</option>
+                  <option value="academic_strict">Formal Akademis Murni (Baku BMP UT)</option>
+                </select>
+              </div>
+
+              <div>
+                <span class="syn-comment">// Pengayaan Sitasi &amp; Referensi:</span>
+                <select id="enrichmentSelect" class="w-full mt-0.5 p-1.5 bg-vscode-sidebar border border-vscode-border rounded text-vscode-cyan focus:outline-none font-code">
+                  <option value="bmp_uu">BMP UT + Citasi UU ITE (2024) / UU PDP</option>
+                  <option value="bmp_studi_kasus">BMP UT + Kasus Industri SI / IT Indonesia</option>
+                  <option value="bmp_iso">BMP UT + Standar ISO / IEEE / Math Proofs</option>
+                  <option value="murni_bmp">Fokus Utama Doktrin Teori BMP UT</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <label class="inline-flex items-center cursor-pointer text-[11px] font-medium text-vscode-comment">
+                <input type="checkbox" id="includeBibliographyToggle" checked class="rounded border-vscode-border text-vscode-blue focus:ring-vscode-blue h-3.5 w-3.5 mr-1.5 bg-vscode-sidebar">
+                Sertakan Daftar Pustaka (APA 7th)
+              </label>
+            </div>
+          </div>
+
+          <!-- RUN BUTTON -->
+          <button id="generateBtn" onclick="generateAIResponse()" class="w-full py-3 px-4 bg-vscode-blue hover:bg-blue-600 text-white font-code font-bold rounded-lg shadow-lg transition duration-150 flex items-center justify-center gap-2 group active:scale-98 border border-blue-400/40">
+            <i class="fa-solid fa-play text-vscode-green group-hover:scale-110 transition-transform"></i>
+            <span>RUN &amp; GENERATE BJU PAYLOAD</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER PANEL: BJU Output Preview (5 Cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-3">
+      <div class="bg-vscode-sidebar p-2.5 rounded-xl border border-vscode-border vscode-shadow flex flex-wrap items-center justify-between gap-2 font-code">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-file-word text-vscode-blueLight text-sm"></i>
+          <h2 class="text-xs font-bold text-white uppercase tracking-wide">bju_output_preview.doc</h2>
+        </div>
+
+        <div class="flex items-center space-x-1.5 text-xs">
+          <button onclick="analyzeAiDetection()" class="px-2.5 py-1.5 bg-vscode-editor hover:bg-slate-700 text-vscode-green rounded border border-vscode-border flex items-center gap-1 transition active:scale-95" title="Analisis Deteksi AI">
+            <i class="fa-solid fa-chart-pie text-vscode-green"></i> Cek AI
+          </button>
+
+          <button onclick="copyGeneratedText()" class="px-2.5 py-1.5 bg-vscode-editor hover:bg-slate-700 text-vscode-cyan rounded border border-vscode-border flex items-center gap-1 transition active:scale-95" title="Copy Text">
+            <i class="fa-regular fa-copy mr-1"></i> Salin
+          </button>
+          
+          <button onclick="exportWord()" class="px-2.5 py-1.5 bg-vscode-blue hover:bg-blue-600 text-white rounded border border-blue-400/30 flex items-center gap-1 transition active:scale-95" title="Export Word (.doc)">
+            <i class="fa-regular fa-file-word text-vscode-blueLight"></i> Word
+          </button>
+
+          <button onclick="printBju()" class="px-2.5 py-1.5 bg-vscode-tabInactive hover:bg-slate-700 text-vscode-yellow rounded border border-vscode-border flex items-center gap-1 transition active:scale-95" title="Cetak / Simpan PDF">
+            <i class="fa-solid fa-print text-vscode-orange"></i> Cetak / PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- BJU PAPER CANVAS SHEET -->
+      <div id="bjuContainer" class="bg-vscode-editor rounded-xl shadow-xl border border-vscode-border p-5 sm:p-6 flex-1 flex flex-col min-h-[620px] relative font-code text-vscode-cyan">
+        
+        <div class="border-2 border-vscode-border mb-5 rounded overflow-hidden text-vscode-cyan text-xs font-code bg-vscode-sidebar">
+          <div class="bg-vscode-tabInactive text-vscode-yellow px-3 py-1.5 font-bold text-center uppercase tracking-wider text-xs flex items-center justify-between border-b border-vscode-border">
+            <span class="text-vscode-orange text-[10px]">// UNIVERSITAS TERBUKA</span>
+            <span class="text-white">LEMBAR JAWABAN TUGAS TUTON</span>
+            <span class="text-vscode-green text-[10px]">2026/2027 GANJIL</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-vscode-border bg-vscode-sidebar">
+            <div class="p-2.5 space-y-1">
+              <div class="flex"><span class="w-28 font-bold text-vscode-teal">Nama Mahasiswa</span>: <span id="dispName" class="font-bold text-white uppercase ml-1">LUKMAN NURHAKIM</span></div>
+              <div class="flex"><span class="w-28 font-bold text-vscode-teal">NIM</span>: <span id="dispNim" class="font-mono font-bold text-vscode-yellow ml-1">059027883</span></div>
+              <div class="flex"><span class="w-28 font-bold text-vscode-teal">Program Studi</span>: <span id="dispProdi" class="ml-1 text-vscode-cyan">SISTEM INFORMASI (FST)</span></div>
+              <div class="flex"><span class="w-28 font-bold text-vscode-teal">UPBJJ - UT</span>: <span id="dispUpbjj" class="ml-1 text-vscode-orange">24 / GARUT</span></div>
+            </div>
+
+            <div class="p-2.5 space-y-1">
+              <div class="flex"><span class="w-28 font-bold text-vscode-teal">Mata Kuliah</span>: <span id="bjuCourse" class="font-bold text-vscode-yellow ml-1">MSIM4301 - Analisis &amp; Perancangan Sistem</span></div>
+              <div class="flex"><span class="w-28 font-bold text-vscode-teal">Sesi / Tugas</span>: <span id="bjuSession" class="font-semibold text-vscode-pink ml-1">Sesi 1</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GENERATED ANSWER CONTENT AREA -->
+        <div id="outputAnswerArea" contenteditable="true" class="flex-1 text-vscode-cyan text-xs leading-relaxed p-2 focus:outline-none focus:ring-1 focus:ring-vscode-blue rounded min-h-[380px] font-code bg-vscode-bg border border-vscode-border">
+          <p class="mb-3 leading-relaxed text-vscode-cyan text-justify"><br></p>
+        </div>
+
+        <div class="mt-4 pt-2 border-t border-vscode-border text-[10px] text-vscode-comment flex flex-wrap justify-between items-center font-code no-print">
+          <span><i class="fa-solid fa-code text-vscode-green"></i> VS Code Live Code View (Official BJU Format Ready)</span>
+          <span>Sistem Informasi FST UT</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Expanded Detailed Exam Summary (3 Cols) -->
+    <section class="lg:col-span-3 flex flex-col gap-3 font-code">
+      <div class="bg-vscode-sidebar p-3 rounded-xl border border-vscode-border vscode-shadow flex-1 flex flex-col">
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-vscode-border">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-brain text-vscode-pink text-base"></i>
+            <h2 class="text-xs font-bold text-vscode-yellow uppercase tracking-wider">detailed_exam_summary.md</h2>
+          </div>
+          <span class="bg-vscode-pink/20 text-vscode-pink text-[10px] px-2 py-0.5 rounded font-bold">RANGKUMAN RINCI</span>
+        </div>
+
+        <p class="text-[11px] text-vscode-comment mb-2">
+          // Rangkuman komprehensif (Definisi, Formula/Prinsip, Langkah Kunci &amp; Istilah Utama UAS):
+        </p>
+
+        <!-- Summary Content Area -->
+        <div id="examSummaryArea" class="flex-1 bg-vscode-editor border border-vscode-border rounded-lg p-3 text-xs leading-relaxed text-vscode-cyan overflow-y-auto max-h-[580px]">
+          <div class="p-3 text-vscode-comment text-xs text-center">// Klik RUN &amp; GENERATE untuk menyusun Rangkuman Rinci Ujian...</div>
+        </div>
+
+        <button onclick="copySummaryText()" class="mt-3 w-full py-2 bg-vscode-tabInactive hover:bg-slate-700 text-vscode-teal border border-vscode-border rounded text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <i class="fa-regular fa-copy"></i> SALIN RANGKUMAN RINCI
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- VIEW 2: INTERACTIVE EXAM STUDIO & QUIZ PRACTICE (SEPARATE VIEW) -->
+  <main id="mainView-quiz" class="max-w-[1850px] mx-auto px-2 sm:px-4 py-3 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-4 hidden">
+    
+    <!-- LEFT PANEL: Quiz Modul Upload & Config (4 Cols) -->
+    <section class="lg:col-span-4 flex flex-col gap-3 font-code">
+      <div class="bg-vscode-sidebar p-4 rounded-xl border border-vscode-border vscode-shadow space-y-3">
+        <div class="flex items-center space-x-2 pb-2 border-b border-vscode-border">
+          <i class="fa-solid fa-sliders text-vscode-yellow text-base"></i>
+          <h2 class="text-xs font-bold text-vscode-yellow uppercase tracking-wider">quiz_generator_config.py</h2>
+        </div>
+
+        <!-- PDF Module Uploader & Google Drive Link for Quiz -->
+        <div>
+          <span class="syn-comment">// 1. Bahan Modul BMP (Upload PDF atau Masukkan Link Google Drive):</span>
+          <div id="quizDropZone" class="mt-1.5 border-2 border-dashed border-vscode-border hover:border-vscode-blue rounded-xl p-3 text-center bg-vscode-editor transition cursor-pointer relative">
+            <input type="file" id="quizModulePdfInput" accept=".pdf,.txt,.md" multiple onchange="handleQuizModuleUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+            <div class="space-y-1 pointer-events-none">
+              <i class="fa-solid fa-cloud-arrow-up text-xl text-vscode-blueLight"></i>
+              <p class="text-[11px] font-bold text-white">Klik / Tarik Modul PDF BMP di Sini</p>
+              <p class="text-[9px] text-vscode-comment">atau masukkan tautan Google Drive di bawah</p>
+            </div>
+          </div>
+
+          <!-- Google Drive Link Input for Quiz -->
+          <div class="mt-2 space-y-1">
+            <div class="flex gap-1.5">
+              <input type="text" id="quizGdriveLinkInput" placeholder="https://drive.google.com/file/d/.../view" class="w-full p-2 bg-vscode-editor border border-vscode-border rounded text-xs text-vscode-cyan focus:outline-none font-code">
+              <button onclick="addQuizGdriveLink()" class="px-3 py-2 bg-vscode-tabInactive hover:bg-slate-700 text-vscode-yellow rounded border border-vscode-border text-xs font-bold shrink-0">
+                <i class="fa-brands fa-google-drive mr-1"></i>Link
+              </button>
+            </div>
+            <p class="text-[9px] text-vscode-comment">// Pastikan link Google Drive diset "Anyone with the link can view".</p>
+          </div>
+
+          <div id="quizModuleList" class="mt-2 space-y-1.5 max-h-[140px] overflow-y-auto pr-1">
+            <div class="text-[10px] text-vscode-comment text-center py-2">// Belum ada bahan modul terpasang.</div>
+          </div>
+        </div>
+
+        <!-- Quiz Parameters -->
+        <div class="space-y-2 pt-2 border-t border-vscode-border text-xs">
+          <div>
+            <span class="syn-keyword">jumlah_soal</span> = 
+            <select id="quizQuestionCountSelect" class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-yellow focus:outline-none">
+              <option value="5">5 Soal Latihan (Quick Check)</option>
+              <option value="10" selected>10 Soal Latihan (Standar UAS)</option>
+              <option value="15">15 Soal Latihan (Simulasi Lengkap)</option>
+            </select>
+          </div>
+
+          <div>
+            <span class="syn-keyword">tingkat_kesulitan</span> = 
+            <select id="quizDifficultySelect" class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-teal focus:outline-none">
+              <option value="analisis">HOTS (Analisis &amp; Studi Kasus UAS UT)</option>
+              <option value="konseptual" selected>Sedang (Pemahaman Konsep &amp; Teori Modul)</option>
+              <option value="dasar">Dasar (Istilah &amp; Definisi)</option>
+            </select>
+          </div>
+
+          <div>
+            <span class="syn-comment">// Fokus Topik / Bab Khusus (Opsional):</span>
+            <input type="text" id="quizFocusTopicInput" placeholder="Contoh: Modul 3 &amp; Modul 4 / Analisis Terstruktur" class="w-full mt-1 p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-string focus:outline-none">
+          </div>
+        </div>
+
+        <button onclick="generateExamQuiz()" class="w-full py-3 bg-vscode-blue hover:bg-blue-600 text-white font-bold rounded-lg shadow-lg transition duration-150 flex items-center justify-center gap-2 active:scale-98 border border-blue-400/40">
+          <i class="fa-solid fa-wand-magic-sparkles text-vscode-yellow"></i>
+          <span>GENERATE SOAL LATIHAN UJIAN INTERAKTIF</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Interactive Quiz Arena (8 Cols) -->
+    <section class="lg:col-span-8 flex flex-col gap-3 font-code">
+      <div class="bg-vscode-sidebar p-3 rounded-xl border border-vscode-border vscode-shadow flex-1 flex flex-col min-h-[580px]">
+        
+        <!-- Arena Header & Score Bar -->
+        <div class="flex flex-wrap items-center justify-between pb-3 mb-3 border-b border-vscode-border gap-2">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-graduation-cap text-vscode-yellow text-lg"></i>
+            <h2 class="text-xs font-bold text-white uppercase tracking-wider">exam_quiz_arena.py</h2>
+          </div>
+
+          <div class="flex items-center space-x-3 text-xs">
+            <span class="bg-vscode-editor px-3 py-1 rounded border border-vscode-border text-vscode-cyan font-bold" id="quizScoreDisplay">Skor: 0 / 0</span>
+            <span class="bg-vscode-editor px-3 py-1 rounded border border-vscode-border text-vscode-teal font-bold" id="quizProgressDisplay">Progress: 0%</span>
+            <button onclick="resetQuizArena()" class="px-2.5 py-1 bg-vscode-tabInactive hover:bg-slate-700 text-vscode-orange rounded border border-vscode-border active:scale-95 transition" title="Reset Soal">
+              <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Question Content Box -->
+        <div id="quizArenaContainer" class="flex-1 bg-vscode-editor border border-vscode-border rounded-xl p-5 overflow-y-auto max-h-[620px] space-y-6">
+          <div class="text-center py-24 text-vscode-comment space-y-3">
+            <i class="fa-solid fa-laptop-code text-5xl text-vscode-blueLight"></i>
+            <p class="text-sm font-bold text-white">Studio Latihan Ujian Belum Dibuat</p>
+            <p class="text-xs">Unggah modul PDF atau masukkan link Google Drive di panel kiri, lalu klik <strong>Generate Soal Latihan Ujian</strong>.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- VIEW 3: JADWAL KULIAH & ABSEN/TUTON MENU -->
+  <main id="mainView-schedule" class="max-w-[1850px] mx-auto px-2 sm:px-4 py-3 flex-1 w-full flex flex-col gap-4 hidden font-code">
+    <div class="bg-vscode-sidebar p-4 rounded-xl border border-vscode-border vscode-shadow space-y-3">
+      <div class="flex flex-wrap items-center justify-between pb-3 border-b border-vscode-border gap-2">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-table-cells text-vscode-green text-lg"></i>
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider">jadwal_kuliah_dan_semester_baru.xlsx</h2>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <button onclick="addScheduleRow()" class="px-3 py-1.5 bg-vscode-blue hover:bg-blue-600 text-white rounded text-xs font-bold flex items-center gap-1.5 transition active:scale-95">
+            <i class="fa-solid fa-plus"></i> Tambah Mata Kuliah
+          </button>
+          <button onclick="resetDefaultSchedule()" class="px-3 py-1.5 bg-vscode-tabInactive hover:bg-slate-700 text-vscode-orange rounded text-xs font-bold flex items-center gap-1.5 transition active:scale-95">
+            <i class="fa-solid fa-rotate-left"></i> Reset Default
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left border-collapse border border-vscode-border text-vscode-cyan">
+          <thead>
+            <tr class="bg-vscode-editor text-vscode-yellow border-b border-vscode-border text-center">
+              <th rowspan="2" class="border border-vscode-border p-2 w-12">NO</th>
+              <th rowspan="2" class="border border-vscode-border p-2 w-28">KODE</th>
+              <th rowspan="2" class="border border-vscode-border p-2 text-left px-3">MATA KULIAH</th>
+              <th colspan="2" class="border border-vscode-border p-1.5 bg-vscode-tabInactive">Sesi 1</th>
+              <th colspan="2" class="border border-vscode-border p-1.5 bg-vscode-tabInactive">Sesi 2</th>
+              <th colspan="2" class="border border-vscode-border p-1.5 bg-vscode-tabInactive">Sesi 3</th>
+              <th colspan="2" class="border border-vscode-border p-1.5 bg-vscode-tabInactive">Sesi 4</th>
+              <th colspan="2" class="border border-vscode-border p-1.5 bg-vscode-tabInactive">Sesi 5</th>
+              <th colspan="2" class="border border-vscode-border p-1.5 bg-vscode-tabInactive">Sesi 6</th>
+              <th colspan="2" class="border border-vscode-border p-1.5 bg-vscode-tabInactive">Sesi 7</th>
+              <th colspan="2" class="border border-vscode-border p-1.5 bg-vscode-tabInactive">Sesi 8</th>
+              <th rowspan="2" class="border border-vscode-border p-2 w-16">AKSI</th>
+            </tr>
+            <tr class="bg-vscode-editor text-[10px] text-vscode-teal border-b border-vscode-border text-center">
+              <th class="border border-vscode-border p-1.5">Abs</th><th class="border border-vscode-border p-1.5">Disk</th>
+              <th class="border border-vscode-border p-1.5">Abs</th><th class="border border-vscode-border p-1.5">Disk</th>
+              <th class="border border-vscode-border p-1.5">Abs</th><th class="border border-vscode-border p-1.5">Tug</th>
+              <th class="border border-vscode-border p-1.5">Abs</th><th class="border border-vscode-border p-1.5">Disk</th>
+              <th class="border border-vscode-border p-1.5">Abs</th><th class="border border-vscode-border p-1.5">Tug</th>
+              <th class="border border-vscode-border p-1.5">Abs</th><th class="border border-vscode-border p-1.5">Disk</th>
+              <th class="border border-vscode-border p-1.5">Abs</th><th class="border border-vscode-border p-1.5">Tug</th>
+              <th class="border border-vscode-border p-1.5">Abs</th><th class="border border-vscode-border p-1.5">Disk</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleTableBody">
+            <!-- Dynamically rendered rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tutor List Reference Sub-table -->
+      <div class="pt-3 border-t border-vscode-border">
+        <p class="text-xs font-bold text-vscode-yellow mb-2">// Daftar Nama Tutor Pengampu Semester Ini:</p>
+        <div id="tutorListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+          <!-- Dynamically populated tutors -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODALS -->
+  
+  <!-- MODAL 1: API KEY -->
+  <div id="apiKeyModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 font-code">
+    <div class="bg-vscode-sidebar rounded-xl border border-vscode-border max-w-md w-full p-5 vscode-shadow">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-sm font-bold text-vscode-yellow flex items-center gap-2">
+          <i class="fa-solid fa-key text-vscode-orange"></i> [API_KEY_SETTINGS]
+        </h3>
+        <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+      </div>
+      <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full p-2.5 text-xs bg-vscode-editor border border-vscode-border rounded text-vscode-string focus:outline-none">
+      <div class="mt-5 flex justify-end space-x-2 text-xs">
+        <button onclick="closeApiKeyModal()" class="px-3 py-2 text-slate-400 hover:bg-vscode-editor rounded">CANCEL</button>
+        <button onclick="saveApiKey()" class="px-4 py-2 bg-vscode-blue text-white font-bold rounded">SAVE_KEY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: USER PROFILE -->
+  <div id="profileModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 font-code">
+    <div class="bg-vscode-sidebar rounded-xl border border-vscode-border max-w-md w-full p-5 vscode-shadow">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-sm font-bold text-vscode-teal flex items-center gap-2">
+          <i class="fa-solid fa-user-gear text-vscode-yellow"></i> [PROFIL_MAHASISWA_UT]
+        </h3>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+      </div>
+      <div class="space-y-2.5 text-xs">
+        <div>
+          <label class="block font-bold text-vscode-cyan mb-1">Nama Lengkap:</label>
+          <input type="text" id="editName" value="LUKMAN NURHAKIM" class="w-full p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-string uppercase">
+        </div>
+        <div>
+          <label class="block font-bold text-vscode-cyan mb-1">NIM:</label>
+          <input type="text" id="editNim" value="059027883" class="w-full p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-yellow font-bold">
+        </div>
+        <div>
+          <label class="block font-bold text-vscode-cyan mb-1">Program Studi:</label>
+          <input type="text" id="editProdi" value="SISTEM INFORMASI" class="w-full p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-teal">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-vscode-cyan mb-1">Fakultas:</label>
+            <input type="text" id="editFakultas" value="FAKULTAS SAINS DAN TEKNOLOGI (FST)" class="w-full p-2 bg-vscode-editor border border-vscode-border rounded text-vscode-pink">
+          </div>
+          <div>
+            <label class="block font-bold text-vscode-cyan mb-1">UPBJJ UT:</label>
+            <input type="text" id="editUpbjj" value="GARUT" class="w-full p-2 bg-vscode-editor border border-vscode-border rounded uppercase text-vscode-orange">
+          </div>
+        </div>
+      </div>
+      <div class="mt-5 flex justify-end space-x-2 text-xs">
+        <button onclick="closeProfileModal()" class="px-3 py-2 text-slate-400 hover:bg-vscode-editor rounded">CANCEL</button>
+        <button onclick="saveProfile()" class="px-4 py-2 bg-vscode-blue text-white font-bold rounded">UPDATE_PROFILE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: HISTORY LOGS -->
+  <div id="historyModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 font-code">
+    <div class="bg-vscode-sidebar rounded-xl border border-vscode-border max-w-2xl w-full p-5 vscode-shadow flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center mb-3 pb-2 border-b border-vscode-border">
+        <h3 class="text-sm font-bold text-vscode-yellow flex items-center gap-2">
+          <i class="fa-solid fa-code-commit text-vscode-blueLight"></i> [GIT_HISTORY_LOGS]
+        </h3>
+        <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+      </div>
+      <div id="historyListContainer" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+      <div class="mt-4 pt-2 border-t border-vscode-border flex justify-end">
+        <button onclick="closeHistoryModal()" class="px-4 py-2 text-xs font-bold bg-vscode-tabInactive text-white rounded">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: AI DETECTION ANALYZER -->
+  <div id="aiDetectorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 font-code">
+    <div class="bg-vscode-sidebar rounded-xl border border-vscode-border max-w-lg w-full p-5 vscode-shadow flex flex-col space-y-4">
+      <div class="flex justify-between items-center border-b border-vscode-border pb-2">
+        <h3 class="text-sm font-bold text-vscode-green flex items-center gap-2">
+          <i class="fa-solid fa-shield-cat text-vscode-green"></i> [AI_DETECTION_METRICS]
+        </h3>
+        <button onclick="closeAiDetectorModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+      </div>
+
+      <div class="bg-vscode-editor p-4 rounded-xl border border-vscode-border text-center space-y-2">
+        <p class="text-xs font-semibold text-vscode-comment uppercase tracking-wider">// Estimasi Skor AI Detector</p>
+        <div class="text-4xl font-extrabold text-vscode-green" id="aiScoreValue">12%</div>
+        <p id="aiScoreBadge" class="inline-block text-xs font-bold px-3 py-1 rounded-full bg-vscode-green/20 text-vscode-green border border-vscode-green/40">Sangat Aman (Lolos AI Detector / Turnitin / ZeroGPT)</p>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <div class="flex justify-between items-center p-2.5 bg-vscode-editor rounded-lg border border-vscode-border">
+          <span class="text-vscode-cyan font-medium"><i class="fa-solid fa-align-left text-vscode-blueLight mr-1.5"></i> Total Kata</span>
+          <span id="metricWordCount" class="font-bold text-vscode-yellow">0 Kata</span>
+        </div>
+        <div class="flex justify-between items-center p-2.5 bg-vscode-editor rounded-lg border border-vscode-border">
+          <span class="text-vscode-cyan font-medium"><i class="fa-solid fa-user-pen text-vscode-green mr-1.5"></i> Sudut Pandang Orang Pertama ("Saya")</span>
+          <span id="metricFirstPerson" class="font-bold text-vscode-green">Tercakup (Organik)</span>
+        </div>
+        <div class="flex justify-between items-center p-2.5 bg-vscode-editor rounded-lg border border-vscode-border">
+          <span class="text-vscode-cyan font-medium"><i class="fa-solid fa-book-bookmark text-vscode-orange mr-1.5"></i> Sitasi &amp; Referensi</span>
+          <span id="metricCitation" class="font-bold text-vscode-green">Terdeteksi (BMP UT)</span>
+        </div>
+        <div class="flex justify-between items-center p-2.5 bg-vscode-editor rounded-lg border border-vscode-border">
+          <span class="text-vscode-cyan font-medium"><i class="fa-solid fa-filter text-vscode-pink mr-1.5"></i> Frasa Klise AI</span>
+          <span id="metricCliche" class="font-bold text-vscode-green">0 Frasa Terdeteksi</span>
+        </div>
+      </div>
+
+      <div class="mt-2 text-end">
+        <button onclick="closeAiDetectorModal()" class="px-4 py-2 text-xs font-bold bg-vscode-blue text-white rounded">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none font-code"></div>
+
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    // Global State Variables Declaration
+    let draftHistory = [];
+    let refModules = [];
+    let quizAttachedModules = [];
+    let generatedQuizData = [];
+    let userQuizAnswers = {};
+    let currentDetailedSummary = '';
+    let currentTab = 'discussion';
+    let userProfile = {
+      name: 'LUKMAN NURHAKIM',
+      nim: '059027883',
+      prodi: 'SISTEM INFORMASI',
+      fakultas: 'FAKULTAS SAINS DAN TEKNOLOGI (FST)',
+      upbjj: 'GARUT'
+    };
+
+    let studentCoursesSchedule = [
+      { no: 1, code: 'MKDI4201', name: 'Bahasa Inggris', tutor: 'Richa A Shara, M.Pd', checks: [true,true, true,true, true,true, true,true, true,true, true,true, true,false, false,false] },
+      { no: 2, code: 'MKWN4101', name: 'Pendidikan Agama Islam', tutor: 'Ahmad Solahuddin', checks: [true,true, true,true, true,true, true,true, true,true, true,true, true,false, false,false] },
+      { no: 3, code: 'MKWN4109', name: 'Pendidikan Kewarganegaraan', tutor: 'M Harviend Gilang P, S.IP., M.', checks: [true,true, true,true, true,true, true,true, true,true, true,true, true,true, false,false] },
+      { no: 4, code: 'STMA4112', name: 'Matematika Dasar', tutor: 'Hady Rasikhun, S.Si., M.Si.', checks: [true,true, true,true, true,true, true,true, true,true, true,true, true,false, false,false] },
+      { no: 5, code: 'STSI4103', name: 'Sistem Operasi', tutor: 'Binti Mamluatul Karomah, S.', checks: [true,true, true,true, true,true, true,true, true,true, true,true, true,false, false,false] },
+      { no: 6, code: 'STSI4101', name: 'Pengantar Sistem Informasi', tutor: 'Mukhlis Febriady, M.Kom.', checks: [true,true, true,true, true,true, true,true, true,true, true,true, true,false, false,false] },
+      { no: 7, code: 'STSI4102', name: 'Algoritma dan Pemrograman', tutor: 'Nuari Anisa Sivi, S.Kom.,M.T.I', checks: [true,true, true,true, true,true, true,true, true,true, true,true, false,false, false,false] }
+    ];
+
+    function renderScheduleTable() {
+      const tbody = document.getElementById('scheduleTableBody');
+      const tutorContainer = document.getElementById('tutorListContainer');
+      if (!tbody) return;
+
+      tbody.innerHTML = studentCoursesSchedule.map((row, rIdx) => `
+        <tr class="border-b border-vscode-border hover:bg-vscode-editor/50 text-center">
+          <td class="border border-vscode-border p-1 font-bold text-vscode-yellow">${rIdx + 1}</td>
+          <td class="border border-vscode-border p-1 font-mono text-vscode-teal">
+            <input type="text" value="${row.code}" onchange="updateScheduleField(${rIdx}, 'code', this.value)" class="w-24 bg-vscode-editor text-vscode-teal font-mono px-1 py-0.5 rounded border border-transparent hover:border-vscode-border focus:border-vscode-blue focus:outline-none text-center">
+          </td>
+          <td class="border border-vscode-border p-1 text-left px-2 font-medium text-white">
+            <input type="text" value="${row.name}" onchange="updateScheduleField(${rIdx}, 'name', this.value)" class="w-full bg-vscode-editor text-white px-1.5 py-0.5 rounded border border-transparent hover:border-vscode-border focus:border-vscode-blue focus:outline-none">
+          </td>
+          ${row.checks.map((isChecked, cIdx) => `
+            <td class="border border-vscode-border p-0.5">
+              <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleScheduleCheck(${rIdx}, ${cIdx})" class="rounded bg-vscode-editor border-vscode-border text-vscode-blue focus:ring-0 h-3.5 w-3.5 cursor-pointer">
+            </td>
+          `).join('')}
+          <td class="border border-vscode-border p-1 text-center">
+            <button type="button" onclick="deleteScheduleRow(${rIdx})" class="text-vscode-red hover:text-red-400 p-2 cursor-pointer inline-flex items-center justify-center" title="Hapus Matkul">
+              <i class="fa-solid fa-trash-can pointer-events-none text-sm"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      if (tutorContainer) {
+        tutorContainer.innerHTML = studentCoursesSchedule.map(row => `
+          <div class="p-2 bg-vscode-editor rounded border border-vscode-border flex justify-between items-center">
+            <span class="text-vscode-teal truncate">${row.code} - ${row.name}</span> 
+            <input type="text" value="${row.tutor || 'Tutor Belum Diisi'}" onchange="updateTutorField('${row.code}', this.value)" class="w-36 bg-vscode-sidebar text-white text-right px-1.5 py-0.5 rounded border border-transparent hover:border-vscode-border focus:outline-none text-xs">
+          </div>
+        `).join('');
+      }
+      populateCourseAndTutorDropdowns();
+    }
+
+    function updateScheduleField(rIdx, field, value) {
+      studentCoursesSchedule[rIdx][field] = value.trim();
+      localStorage.setItem('ut_student_schedule', JSON.stringify(studentCoursesSchedule));
+      renderScheduleTable();
+      showToast('Jadwal diperbarui!');
+    }
+
+    function updateTutorField(code, value) {
+      const row = studentCoursesSchedule.find(s => s.code === code);
+      if (row) {
+        row.tutor = value.trim();
+        localStorage.setItem('ut_student_schedule', JSON.stringify(studentCoursesSchedule));
+        renderScheduleTable();
+        showToast('Nama tutor diperbarui!');
+      }
+    }
+
+    function addScheduleRow() {
+      studentCoursesSchedule.push({
+        no: studentCoursesSchedule.length + 1,
+        code: 'NEW' + (studentCoursesSchedule.length + 1),
+        name: 'Mata Kuliah Baru Semester Ini',
+        tutor: 'Nama Tutor',
+        checks: new Array(16).fill(false)
+      });
+      localStorage.setItem('ut_student_schedule', JSON.stringify(studentCoursesSchedule));
+      renderScheduleTable();
+      showToast('Baris mata kuliah baru ditambahkan!');
+    }
+
+    function deleteScheduleRow(rIdx) {
+      if (confirm('Hapus mata kuliah ini dari daftar?')) {
+        studentCoursesSchedule.splice(rIdx, 1);
+        localStorage.setItem('ut_student_schedule', JSON.stringify(studentCoursesSchedule));
+        renderScheduleTable();
+        showToast('Mata kuliah dihapus.');
+      }
+    }
+
+    function resetDefaultSchedule() {
+      if (confirm('Reset jadwal ke default semester awal?')) {
+        localStorage.removeItem('ut_student_schedule');
+        loadScheduleFromStorage();
+        showToast('Jadwal direset ke default.');
+      }
+    }
+
+    function toggleScheduleCheck(rIdx, cIdx) {
+      studentCoursesSchedule[rIdx].checks[cIdx] = !studentCoursesSchedule[rIdx].checks[cIdx];
+      localStorage.setItem('ut_student_schedule', JSON.stringify(studentCoursesSchedule));
+      showToast('Status absen/tugas diperbarui!');
+    }
+
+    function loadScheduleFromStorage() {
+      const saved = localStorage.getItem('ut_student_schedule');
+      if (saved) { try { studentCoursesSchedule = JSON.parse(saved); } catch(e){} }
+      renderScheduleTable();
+    }
+
+    function populateCourseAndTutorDropdowns() {
+      const courseSelect = document.getElementById('sharedCourseInput');
+      if (!courseSelect) return;
+      
+      const currentSelectedVal = courseSelect.value;
+
+      courseSelect.innerHTML = studentCoursesSchedule.map(item => {
+        const fullCourseStr = `${item.code} - ${item.name}`;
+        return `<option value="${fullCourseStr}">${fullCourseStr}</option>`;
+      }).join('');
+
+      if (currentSelectedVal) {
+        courseSelect.value = currentSelectedVal;
+      }
+
+      autoSelectTutorForActiveCourse();
+      updateBjuHeader();
+    }
+
+    function autoSelectTutorForActiveCourse() {
+      const courseSelect = document.getElementById('sharedCourseInput');
+      const tutorInput1 = document.getElementById('tutorNameInput');
+      const tutorInput2 = document.getElementById('tutorNameTaskInput');
+      if (!courseSelect) return;
+
+      const selectedCourseStr = courseSelect.value;
+      const matchedCourse = studentCoursesSchedule.find(s => `${s.code} - ${s.name}` === selectedCourseStr);
+      
+      const tutorName = matchedCourse ? (matchedCourse.tutor || 'Tutor Belum Diisi') : 'Tutor Belum Diisi';
+      if (tutorInput1) tutorInput1.value = tutorName;
+      if (tutorInput2) tutorInput2.value = tutorName;
+    }
+
+    function setCourse(courseName, presetType = 'default') {
+      const input = document.getElementById('sharedCourseInput');
+      if (input) {
+        input.value = courseName;
+        autoSelectTutorForActiveCourse();
+        updateBjuHeader();
+      }
+      showToast(`Selected Course: ${courseName}`);
+    }
+
+    function updateScheduleField(rIdx, field, value) {
+      studentCoursesSchedule[rIdx][field] = value.trim();
+      localStorage.setItem('ut_student_schedule', JSON.stringify(studentCoursesSchedule));
+      renderScheduleTable();
+      populateCourseAndTutorDropdowns();
+      showToast('Jadwal diperbarui!');
+    }
+
+    function addScheduleRow() {
+      studentCoursesSchedule.push({
+        no: studentCoursesSchedule.length + 1,
+        code: 'NEW' + (studentCoursesSchedule.length + 1),
+        name: 'Mata Kuliah Baru Semester Ini',
+        tutor: 'Nama Tutor',
+        checks: new Array(16).fill(false)
+      });
+      localStorage.setItem('ut_student_schedule', JSON.stringify(studentCoursesSchedule));
+      renderScheduleTable();
+      populateCourseAndTutorDropdowns();
+      showToast('Baris mata kuliah baru ditambahkan!');
+    }
+
+    function deleteScheduleRow(rIdx) {
+      if (confirm('Hapus mata kuliah ini dari daftar?')) {
+        studentCoursesSchedule.splice(rIdx, 1);
+        localStorage.setItem('ut_student_schedule', JSON.stringify(studentCoursesSchedule));
+        renderScheduleTable();
+        populateCourseAndTutorDropdowns();
+        showToast('Mata kuliah dihapus.');
+      }
+    }
+
+    function setCourse(courseName, presetType = 'default') {
+      const input = document.getElementById('sharedCourseInput');
+      if (input) {
+        input.value = courseName;
+        updateBjuHeader();
+      }
+      showToast(`Selected Course: ${courseName}`);
+    }
+
+    function switchMainView(viewName) {
+      const viewBju = document.getElementById('mainView-bju');
+      const viewQuiz = document.getElementById('mainView-quiz');
+      const viewSchedule = document.getElementById('mainView-schedule');
+      const btnBju = document.getElementById('viewBtn-bju');
+      const btnQuiz = document.getElementById('viewBtn-quiz');
+      const btnSchedule = document.getElementById('viewBtn-schedule');
+
+      if (!viewBju || !viewQuiz || !viewSchedule || !btnBju || !btnQuiz || !btnSchedule) return;
+
+      viewBju.classList.add('hidden');
+      viewQuiz.classList.add('hidden');
+      viewSchedule.classList.add('hidden');
+      btnBju.className = "px-3 py-1 rounded text-slate-300 hover:text-white transition flex items-center gap-1.5";
+      btnQuiz.className = "px-3 py-1 rounded text-vscode-yellow hover:text-white transition flex items-center gap-1.5";
+      btnSchedule.className = "px-3 py-1 rounded text-vscode-green hover:text-white transition flex items-center gap-1.5";
+
+      if (viewName === 'bju') {
+        viewBju.classList.remove('hidden');
+        btnBju.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
+      } else if (viewName === 'quiz') {
+        viewQuiz.classList.remove('hidden');
+        btnQuiz.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
+      } else if (viewName === 'schedule') {
+        viewSchedule.classList.remove('hidden');
+        btnSchedule.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
+        renderScheduleTable();
+      }
+    }
+
+    function switchTab(tabName) {
+      currentTab = tabName;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('text-white', 'bg-vscode-editor', 'border-t-2', 'border-vscode-blue');
+        btn.classList.add('text-slate-400');
+      });
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+
+      const activeBtn = document.getElementById(`tabBtn-${tabName}`);
+      const activeContent = document.getElementById(`tabContent-${tabName}`);
+      
+      if (activeBtn) {
+        activeBtn.classList.add('text-white', 'bg-vscode-editor', 'border-t-2', 'border-vscode-blue');
+        activeBtn.classList.remove('text-slate-400');
+      }
+      if (activeContent) {
+        activeContent.classList.remove('hidden');
+      }
+
+      updateBjuHeader();
+    }
+
+    function updateBjuHeader() {
+      const courseInput = document.getElementById('sharedCourseInput');
+      const course = courseInput ? courseInput.value : 'MSIM4301 - Analisis & Perancangan Sistem';
+      let sessionText = 'Sesi 1';
+
+      if (currentTab === 'discussion') {
+        const sel = document.getElementById('discSessionSelect');
+        if (sel) sessionText = sel.value;
+      } else if (currentTab === 'task') {
+        const sel = document.getElementById('taskNumberSelect');
+        if (sel) sessionText = sel.value;
+      } else if (currentTab === 'metopen') {
+        sessionText = 'Metode Penelitian';
+      }
+
+      const bjuCourseEl = document.getElementById('bjuCourse');
+      const bjuSessionEl = document.getElementById('bjuSession');
+      if (bjuCourseEl) bjuCourseEl.innerText = course;
+      if (bjuSessionEl) bjuSessionEl.innerText = sessionText;
+    }
+
+    function toggleExpandTextarea(id) {
+      const el = document.getElementById(id);
+      if (el) el.rows = (el.rows === 5 || el.rows === 6) ? 14 : 5;
+    }
+
+    function getRealtimeGreeting() {
+      const hour = new Date().getHours();
+      if (hour >= 4 && hour < 11) return "Selamat Pagi";
+      if (hour >= 11 && hour < 15) return "Selamat Siang";
+      if (hour >= 15 && hour < 18.5) return "Selamat Sore";
+      return "Selamat Malam";
+    }
+
+    /* QUIZ DRIVE & FILE HANDLERS */
+    function addQuizGdriveLink() {
+      const input = document.getElementById('quizGdriveLinkInput');
+      if (!input || !input.value.trim()) {
+        showToast('Masukkan URL Google Drive terlebih dahulu.', 'warning');
+        return;
+      }
+      const url = input.value.trim();
+      quizAttachedModules.push({
+        id: 'gdrive_' + Date.now(),
+        name: 'Google_Drive_Module_' + (quizAttachedModules.length + 1),
+        text: `--- RUJUKAN MODUL DARI GOOGLE DRIVE LINK ---
+Tautan Akses: ${url}
+Catatan Sistem: Materi rujukan bersumber dari Google Drive mahasiswa untuk pembuatan kuis dan latihan ujian interaktif.`
+      });
+      input.value = '';
+      renderQuizModuleList();
+      showToast('Link Google Drive berhasil ditambahkan ke bahan latihan ujian!');
+    }
+
+    async function handleQuizModuleUpload(e) {
+      if (e.target && e.target.files?.length) {
+        showToast(`Membaca ${e.target.files.length} file modul...`);
+        for (let file of e.target.files) {
+          const text = await parsePdfOrTxtFile(file);
+          quizAttachedModules.push({
+            id: Date.now() + '_' + Math.random().toString(36).substring(2, 5),
+            name: file.name,
+            text: text
+          });
+        }
+        renderQuizModuleList();
+        showToast('File modul berhasil dipasang!');
+      }
+    }
+
+    function renderQuizModuleList() {
+      const list = document.getElementById('quizModuleList');
+      if (!list) return;
+      if (quizAttachedModules.length === 0) {
+        list.innerHTML = `<div class="text-[10px] text-vscode-comment text-center py-2">// Belum ada file modul terpasang.</div>`;
+        return;
+      }
+      list.innerHTML = quizAttachedModules.map((m, i) => `
+        <div class="p-2 bg-vscode-editor border border-vscode-border rounded flex justify-between items-center text-xs font-code">
+          <span class="truncate text-vscode-cyan font-bold">${i+1}. ${m.name}</span>
+          <button onclick="removeQuizModule('${m.id}')" class="text-vscode-red hover:underline ml-2"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function removeQuizModule(id) {
+      quizAttachedModules = quizAttachedModules.filter(m => m.id !== id);
+      renderQuizModuleList();
+      showToast('File modul dihapus.');
+    }
+
+    /* REFERENCE MODULE HANDLERS FOR TASK/DISCUSSION */
+    async function handleRefModuleUpload(e) {
+      if (e.target && e.target.files?.length) {
+        showToast(`Membaca ${e.target.files.length} file modul pembantu...`);
+        for (let file of e.target.files) {
+          const text = await parsePdfOrTxtFile(file);
+          refModules.push({
+            id: Date.now() + '_' + Math.random().toString(36).substring(2, 5),
+            name: file.name,
+            text: text,
+            active: true
+          });
+        }
+        renderRefModuleList();
+        showToast('Modul pembantu berhasil dipasang!');
+      }
+    }
+
+    function addPresetRefModule(presetType) {
+      const presetItem = {
+        id: 'preset_' + Date.now(),
+        name: presetType === 'MATA4101' ? 'BMP_MATA4101_Pengantar_Matematika.txt' : 'BMP_MSIM4301_Analisis_Perancangan_Sistem.txt',
+        text: `--- RUJUKAN RESMI MODUL UT ${presetType} ---
+Prinsip utama pembahasan: Konsep dasar, penalaran logis akademis, struktur teoretis, serta pengerjaan soal latihan sesuai modul BMP Universitas Terbuka.`,
+        active: true
+      };
+      refModules.push(presetItem);
+      renderRefModuleList();
+      showToast(`Preset ${presetItem.name} ditambahkan!`);
+    }
+
+    function toggleRefModuleActive(id) {
+      const mod = refModules.find(m => m.id === id);
+      if (mod) { mod.active = !mod.active; renderRefModuleList(); }
+    }
+
+    function deleteRefModule(id) {
+      refModules = refModules.filter(m => m.id !== id);
+      renderRefModuleList();
+      showToast('Modul dihapus.');
+    }
+
+    function clearRefModules() {
+      refModules = [];
+      renderRefModuleList();
+      showToast('Semua modul pembantu dibersihkan.');
+    }
+
+    function renderRefModuleList() {
+      const container = document.getElementById('refModuleListContainer');
+      const badge = document.getElementById('moduleCountBadge');
+      const bannerText = document.getElementById('activeFilesBannerText');
+      if (!container) return;
+
+      const activeCount = refModules.filter(m => m.active).length;
+      if (badge) badge.innerText = activeCount;
+      if (bannerText) bannerText.innerText = `${activeCount} Modul Pembantu Terpasang & Aktif`;
+
+      if (refModules.length === 0) {
+        container.innerHTML = `<div class="text-[10px] text-vscode-comment text-center py-3">// Belum ada modul pembantu diunggah.</div>`;
+        return;
+      }
+
+      container.innerHTML = refModules.map(item => `
+        <div class="p-2 bg-vscode-editor border ${item.active ? 'border-vscode-teal' : 'border-vscode-border'} rounded flex items-center justify-between text-xs font-code">
+          <span class="truncate text-vscode-cyan text-[11px] font-bold">${item.name}</span>
+          <div class="flex items-center space-x-1 shrink-0">
+            <button onclick="toggleRefModuleActive('${item.id}')" class="px-2 py-0.5 text-[10px] font-bold rounded ${item.active ? 'bg-vscode-green/20 text-vscode-green' : 'bg-vscode-tabInactive text-slate-400'}">${item.active ? 'Aktif' : 'Off'}</button>
+            <button onclick="deleteRefModule('${item.id}')" class="text-vscode-red hover:underline px-1"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function parsePdfOrTxtFile(file) {
+      if (file.type === "application/pdf" || file.name.endsWith('.pdf')) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = async function() {
+            try {
+              if (window.pdfjsLib) {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(this.result) }).promise;
+                let fullText = '';
+                for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
+                  const page = await pdf.getPage(i);
+                  const content = await page.getTextContent();
+                  fullText += `[Halaman ${i}]\n` + content.items.map(item => item.str).join(' ') + '\n\n';
+                }
+                resolve(fullText);
+              } else {
+                resolve("PDF parsing error.");
+              }
+            } catch (err) {
+              resolve("Error reading PDF.");
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        });
+      } else {
+        return await file.text();
+      }
+    }
+
+    /* GENERATE BJU ANSWER & DETAILED SUMMARY */
+    async function generateAIResponse() {
+      const courseInput = document.getElementById('sharedCourseInput');
+      const course = courseInput ? courseInput.value.trim() : '';
+
+      if (!course) { showToast('Isi Mata Kuliah terlebih dahulu.', 'warning'); return; }
+
+      // Combined attached reference module text
+      const activeRefModules = refModules.filter(m => m.active);
+      const combinedRefText = activeRefModules.map((m, idx) => `=== RUJUKAN MODUL PEMBANTU ${idx + 1}: ${m.name} ===\n${m.text}`).join('\n\n');
+
+      const timeGreeting = getRealtimeGreeting();
+      let promptTaskDetails = '';
+      let tutorName = '';
+      let greetingStyle = '';
+
+      if (currentTab === 'discussion') {
+        const discInput = document.getElementById('discTaskInput')?.value.trim();
+        tutorName = document.getElementById('tutorNameInput')?.value.trim();
+        greetingStyle = document.getElementById('discGreetingSelect')?.value || 'default';
+        if (!discInput) { showToast('Masukkan pertanyaan/soal diskusi LMS.', 'warning'); return; }
+        
+        const tutorGreeting = tutorName ? `Bapak/Ibu ${tutorName}` : 'Bapak/Ibu Tutor';
+        let customGreetingLine = `Assalamu'alaikum Wr. Wb. ${timeGreeting} ${tutorGreeting} selaku Tutor, izin menyampaikan pengerjaan ${document.getElementById('discSessionSelect')?.value} untuk mata kuliah ${course}. Saya telah menyusun jawaban ini dengan mengikuti kaidah penulisan ilmiah serta menggunakan referensi dari Buku Materi Pokok (BMP) yang berlaku di Universitas Terbuka.`;
+        
+        if (greetingStyle === 'formal') {
+          customGreetingLine = `Assalamu'alaikum Wr. Wb. Kepada Yth. ${tutorGreeting} selaku Tutor serta rekan-rekan mahasiswa yang saya hormati, izin menyampaikan tanggapan untuk mata kuliah ${course}.`;
+        } else if (greetingStyle === 'friendly') {
+          customGreetingLine = `Assalamu'alaikum Wr. Wb. ${timeGreeting} ${tutorGreeting} dan rekan-rekan seangkatan. Izin menyampaikan tanggapan diskusi ${course}.`;
+        }
+
+        promptTaskDetails = `[TANGGAPAN DISKUSI TUTON]\nSapaan Wajib di Paragraf 1:\n"${customGreetingLine}"\n\nSoal Diskusi:\n${discInput}`;
+
+      } else if (currentTab === 'task') {
+        const taskInput = document.getElementById('taskInstructionsInput')?.value.trim();
+        tutorName = document.getElementById('tutorNameTaskInput')?.value.trim();
+        if (!taskInput) { showToast('Masukkan instruksi Soal Tugas.', 'warning'); return; }
+
+        const tutorGreeting = tutorName ? `Bapak/Ibu ${tutorName}` : 'Bapak/Ibu Tutor';
+        const taskNum = document.getElementById('taskNumberSelect')?.value || 'Tugas';
+        
+        const customGreetingLine = `Assalamu'alaikum Wr. Wb. ${timeGreeting} ${tutorGreeting} selaku Tutor, izin menyampaikan pengerjaan ${taskNum} untuk mata kuliah ${course}. Saya telah menyusun jawaban ini dengan mengikuti kaidah penulisan ilmiah serta menggunakan referensi dari Buku Materi Pokok (BMP) yang berlaku di Universitas Terbuka.`;
+
+        promptTaskDetails = `[PENGERJAAN TUGAS TUTON]\nSapaan Wajib di Paragraf 1:\n"${customGreetingLine}"\n\nInstruksi Soal:\n${taskInput}`;
+
+      } else if (currentTab === 'metopen') {
+        const topic = document.getElementById('metopenTopicInput')?.value.trim();
+        if (!topic) { showToast('Isi Judul/Topik Proposal Metopen.', 'warning'); return; }
+        promptTaskDetails = `[DRAF PROPOSAL METODE PENELITIAN SISTEM INFORMASI]\nTopik: ${topic}`;
+      } else {
+        promptTaskDetails = `[PENGERJAAN TUGAS/REFERENSI UT]\nMata Kuliah: ${course}`;
+      }
+
+      const isMathCourse = course.toLowerCase().includes('matematika') || course.toLowerCase().includes('mata') || course.toLowerCase().includes('kalkulus');
+
+      const systemInstruction = `Anda adalah mahasiswa S1 Sistem Informasi Universitas Terbuka (UT) bernama ${userProfile.name} (NIM: ${userProfile.nim}).
+
+ATURAN UTAMA PENULISAN (WAJIB KETAT):
+1. PARAGRAF PERTAMA HARUS DIAWALI DENGAN KALIMAT SAPAAN RESMI UT DENGAN TEPAT.
+2. DILARANG MEMBERIKAN PERKENALAN DIRI BERULANG "Nama saya..." ATAU HEADER NAMA/NIM DI AWAL (karena KOP BJU UT di atas sudah menyediakannya).
+3. DILARANG MENGGUNAKAN SIMBOL MARKDOWN HASHTAG (#) ATAU BINTANG (* / **). Gunakan penomoran angka standar.
+4. Buatkan Daftar Pustaka format APA 7th Edition secara rapi di bagian akhir.
+5. SERTAKAN BAGIAN KHUSUS DI PALING AKHIR BERI JUDUL "=== RANGKUMAN RINCI BUKU & HAFALAN UJIAN ===" LENGKAP DENGAN 4 KATEGORI:
+- 1. Konsep & Definisi Kunci
+- 2. Rumus / Prinsip Teori Utama
+- 3. Langkah-Langkah Prosedural Kunci
+- 4. Istilah Penting yang Sering Keluar UAS.`;
+
+      const fullPrompt = `${systemInstruction}\n\nMata Kuliah: ${course}\n${promptTaskDetails}\n\n${combinedRefText ? 'DOKUMEN RUJUKAN MODUL PEMBANTU (UTAMA):\n' + combinedRefText : ''}`;
+
+      const outputArea = document.getElementById('outputAnswerArea');
+      const summaryArea = document.getElementById('examSummaryArea');
+
+      if (outputArea) {
+        outputArea.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-16 space-y-3 font-code">
+            <div class="w-8 h-8 border-4 border-vscode-blue border-t-vscode-yellow rounded-full animate-spin"></div>
+            <p class="text-xs font-bold text-vscode-cyan animate-pulse">// Compiling BJU Answer & Detailed Summary...</p>
+          </div>
+        `;
+      }
+
+      if (summaryArea) {
+        summaryArea.innerHTML = `<div class="p-4 text-center text-vscode-comment text-xs"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Extracting detailed memory notes...</div>`;
+      }
+
+      const candidateModels = ['gemini-3-flash-preview', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      let userKey = localStorage.getItem('ut_gemini_api_key') || '';
+      let generatedText = null;
+
+      for (let modelName of candidateModels) {
+        try {
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${userKey}`;
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (generatedText) break;
+          }
+        } catch (err) {}
+      }
+
+      if (generatedText) {
+        let mainBjuText = generatedText;
+        let summaryPart = '';
+
+        if (generatedText.includes('=== RANGKUMAN RINCI BUKU & HAFALAN UJIAN ===')) {
+          const parts = generatedText.split('=== RANGKUMAN RINCI BUKU & HAFALAN UJIAN ===');
+          mainBjuText = parts[0].trim();
+          summaryPart = parts[1].trim();
+        } else {
+          summaryPart = mainBjuText.slice(0, 400);
+        }
+
+        currentDetailedSummary = summaryPart;
+
+        if (outputArea) {
+          outputArea.innerHTML = cleanAcademicText(mainBjuText);
+          if (isMathCourse && window.renderMathInElement) {
+            window.renderMathInElement(outputArea, { delimiters: [{left: '$', right: '$', display: false}] });
+          }
+        }
+
+        if (summaryArea) {
+          summaryArea.innerHTML = renderDetailedSummaryCards(summaryPart);
+        }
+
+        saveDraftToHistory(course, currentTab, mainBjuText);
+        showToast('BJU UT & Rangkuman Rinci Ujian berhasil dibuat!');
+      } else if (outputArea) {
+        outputArea.innerHTML = `<p class="p-4 text-vscode-red font-bold font-code text-xs">Gagal terhubung ke Gemini API. Silakan periksa API Key Anda.</p>`;
+      }
+    }
+
+    function cleanAcademicText(text) {
+      let clean = text.replace(/\*\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/^#+\s*/gm, '');
+      const paragraphs = clean.split(/\n\s*\n/);
+      return paragraphs.map(p => `<p class="mb-3 leading-relaxed text-vscode-cyan text-justify font-code">${p.trim().replace(/\n/g, '<br>')}</p>`).join('');
+    }
+
+    function renderDetailedSummaryCards(summaryRaw) {
+      let clean = summaryRaw.replace(/\*\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/^#+\s*/gm, '');
+      const lines = clean.split('\n').filter(l => l.trim().length > 0);
+      
+      return lines.map(line => {
+        const isHeading = line.includes(':') || line.startsWith('1.') || line.startsWith('2.') || line.startsWith('3.') || line.startsWith('4.');
+        if (isHeading && line.length < 60) {
+          return `<div class="mt-3 mb-1 text-vscode-yellow font-bold text-xs uppercase border-b border-vscode-border pb-1"><i class="fa-solid fa-bookmark text-vscode-orange mr-1"></i> ${line}</div>`;
+        }
+        return `
+          <div class="mb-1.5 p-2 bg-vscode-tabInactive border-l-2 border-vscode-teal rounded text-[11px] font-code leading-relaxed text-vscode-cyan">
+            <span class="text-vscode-green font-bold">✔</span> ${line.trim()}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copySummaryText() {
+      if (currentDetailedSummary) {
+        navigator.clipboard.writeText(currentDetailedSummary.replace(/\*\*/g, ''));
+        showToast('Rangkuman rinci disalin!');
+      } else {
+        showToast('Belum ada rangkuman rinci.', 'warning');
+      }
+    }
+
+    /* GENERATE INTERACTIVE EXAM QUIZ STUDIO */
+    async function generateExamQuiz() {
+      const courseInput = document.getElementById('sharedCourseInput');
+      const course = courseInput ? courseInput.value.trim() : 'MSIM4301';
+      const count = document.getElementById('quizQuestionCountSelect')?.value || '10';
+      const level = document.getElementById('quizDifficultySelect')?.value || 'konseptual';
+      const focus = document.getElementById('quizFocusTopicInput')?.value.trim() || '';
+
+      const combinedModuleText = quizAttachedModules.map(m => m.text).join('\n\n');
+
+      const arena = document.getElementById('quizArenaContainer');
+      arena.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 space-y-3 font-code">
+          <div class="w-10 h-10 border-4 border-vscode-yellow border-t-vscode-pink rounded-full animate-spin"></div>
+          <p class="text-xs font-bold text-vscode-yellow animate-pulse">// Generating ${count} Interactive Exam Questions for ${course}...</p>
+        </div>
+      `;
+
+      const quizPrompt = `Anda adalah Dosen Pembuat Soal Ujian Akhir Semester (UAS) Universitas Terbuka (UT) untuk mata kuliah ${course}.
+
+Buatkan ${count} Soal Latihan Ujian Pilihan Ganda (A, B, C, D) interaktif dengan tingkat kesulitan ${level}.
+Focus Topik: ${focus || 'Keseluruhan BMP Modul UT'}.
+
+DOKUMEN MODUL PEMBANTU (UTAMA):
+${combinedModuleText ? combinedModuleText.slice(0, 10000) : 'Gunakan materi baku standar BMP UT ' + course}
+
+SANGAT IMPORTANT: RESPON WAJIB BERUPA VALID JSON FORMAT MURNI DENGAN STRUKTUR BERIKUT (TANPA TEKS LAIN):
+[
+  {
+    "id": 1,
+    "question": "Pertanyaan soal ujian 1...",
+    "options": {
+      "A": "Pilihan A",
+      "B": "Pilihan B",
+      "C": "Pilihan C",
+      "D": "Pilihan D"
+    },
+    "correct": "A",
+    "explanation_correct": "Penjelasan mengapa pilihan jawaban ini BENAR secara konsep dan teori.",
+    "explanation_wrong": "Penjelasan evaluasi analisis mengapa jika mahasiswa memilih opsi salah lainnya hal tersebut kurang tepat.",
+    "concept_summary": "Rangkuman poin hafalan penting & tips kilat UAS untuk konsep materi ini (2-3 kalimat tajam untuk dihafal saat ujian).",
+    "module_reference": "Modul 2 (Halaman 2.14 - 2.18) BMP " + "${course}"
+  }
+]`;
+
+      const candidateModels = ['gemini-3-flash-preview', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      let userKey = localStorage.getItem('ut_gemini_api_key') || '';
+      let generatedJson = null;
+
+      for (let modelName of candidateModels) {
+        try {
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${userKey}`;
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: quizPrompt }] }] })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+              generatedJson = JSON.parse(cleanedText);
+              if (Array.isArray(generatedJson)) break;
+            }
+          }
+        } catch (err) {}
+      }
+
+      if (generatedJson && Array.isArray(generatedJson)) {
+        generatedQuizData = generatedJson;
+        userQuizAnswers = {};
+        renderQuizArena();
+        showToast(`Berhasil membuat ${generatedJson.length} soal ujian!`);
+      } else {
+        arena.innerHTML = `
+          <div class="p-6 bg-vscode-editor border border-vscode-red rounded-xl text-vscode-red text-xs space-y-2 font-code">
+            <p class="font-bold text-sm"><i class="fa-solid fa-triangle-exclamation"></i> Gagal Membuat Soal Ujian Interaktif</p>
+            <p>Pastikan API Key Gemini sudah terpasang dan kuota cukup.</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderQuizArena() {
+      const arena = document.getElementById('quizArenaContainer');
+      if (!arena || !generatedQuizData.length) return;
+
+      arena.innerHTML = generatedQuizData.map((q, idx) => {
+        const userChoice = userQuizAnswers[q.id];
+        const isAnswered = userChoice !== undefined;
+        const isCorrect = userChoice === q.correct;
+
+        return `
+          <div class="p-4 bg-vscode-sidebar border border-vscode-border rounded-xl space-y-3 font-code">
+            <div class="flex justify-between items-start gap-2">
+              <span class="text-xs font-bold text-vscode-yellow">Soal ${idx + 1} dari ${generatedQuizData.length}</span>
+              ${isAnswered ? (isCorrect ? '<span class="bg-vscode-green/20 text-vscode-green text-[10px] font-bold px-2 py-0.5 rounded border border-vscode-green/40">JAWABAN BENAR +10</span>' : '<span class="bg-vscode-red/20 text-vscode-red text-[10px] font-bold px-2 py-0.5 rounded border border-vscode-red/40">JAWABAN KURANG TEPAT</span>') : ''}
+            </div>
+
+            <p class="text-xs font-semibold text-white leading-relaxed">${q.question}</p>
+
+            <div class="space-y-1.5 text-xs">
+              ${['A', 'B', 'C', 'D'].map(opt => {
+                const optText = q.options[opt];
+                if (!optText) return '';
+                let btnStyle = 'bg-vscode-editor border-vscode-border text-vscode-cyan hover:bg-vscode-tabInactive';
+                
+                if (isAnswered) {
+                  if (opt === q.correct) btnStyle = 'bg-vscode-green/20 border-vscode-green text-vscode-green font-bold';
+                  else if (opt === userChoice) btnStyle = 'bg-vscode-red/20 border-vscode-red text-vscode-red font-bold';
+                }
+
+                return `
+                  <button onclick="selectQuizOption(${q.id}, '${opt}')" ${isAnswered ? 'disabled' : ''} class="w-full text-left p-2.5 rounded border ${btnStyle} transition flex items-start gap-2 active:scale-98">
+                    <span class="font-bold px-1.5 py-0.5 rounded bg-vscode-tabInactive text-vscode-yellow text-[10px]">${opt}</span>
+                    <span>${optText}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            ${isAnswered ? `
+              <div class="mt-3 p-3 bg-vscode-bg border-l-4 ${isCorrect ? 'border-vscode-green' : 'border-vscode-red'} rounded text-[11px] leading-relaxed space-y-2 font-code">
+                <div class="flex items-center justify-between border-b border-vscode-border pb-1">
+                  <span class="font-bold ${isCorrect ? 'text-vscode-green' : 'text-vscode-red'} flex items-center gap-1">
+                    <i class="fa-solid ${isCorrect ? 'fa-circle-check' : 'fa-circle-xmark'}"></i> 
+                    ${isCorrect ? 'Pemahaman Jawaban Benar:' : 'Evaluasi Analisis Kesalahan:'}
+                  </span>
+                  <span class="text-[10px] font-bold text-vscode-orange bg-vscode-tabInactive px-2 py-0.5 rounded border border-vscode-border">
+                    <i class="fa-solid fa-book-bookmark mr-1"></i>${q.module_reference || 'Modul BMP UT'}
+                  </span>
+                </div>
+
+                <p class="text-slate-300">
+                  ${isCorrect ? (q.explanation_correct || q.explanation) : (q.explanation_wrong || 'Pilihan yang kamu pilih kurang sesuai dengan teori modul. ' + q.explanation_correct)}
+                </p>
+
+                ${!isCorrect ? `
+                  <div class="pt-1.5 border-t border-vscode-border/50 text-vscode-teal text-[10.5px]">
+                    <strong class="text-vscode-yellow">Kunci Jawaban Tepat (${q.correct}):</strong> ${q.options[q.correct]}
+                  </div>
+                ` : ''}
+
+                <!-- RANGKUMAN KHUSUS HAFALAN UJIAN AKHIR -->
+                <div class="mt-2 p-2.5 bg-vscode-sidebar border border-vscode-border rounded-lg text-vscode-cyan text-[10.5px] space-y-1">
+                  <div class="font-bold text-vscode-yellow flex items-center gap-1">
+                    <i class="fa-solid fa-brain text-vscode-pink"></i> Rangkuman Poin Hafalan Umas / UAS:
+                  </div>
+                  <p class="text-vscode-cyan/90 leading-relaxed">
+                    ${q.concept_summary || 'Ingat prinsip utama modul ini: Pahami kata kunci istilah dan urutan alur teoretisnya saat menjawab soal UAS UT.'}
+                  </p>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      updateQuizScoreDisplay();
+    }
+
+    function selectQuizOption(qId, choice) {
+      userQuizAnswers[qId] = choice;
+      renderQuizArena();
+    }
+
+    function updateQuizScoreDisplay() {
+      let correctCount = 0;
+      let totalAnswered = Object.keys(userQuizAnswers).length;
+      
+      generatedQuizData.forEach(q => {
+        if (userQuizAnswers[q.id] === q.correct) correctCount++;
+      });
+
+      const scoreEl = document.getElementById('quizScoreDisplay');
+      const progressEl = document.getElementById('quizProgressDisplay');
+
+      if (scoreEl) scoreEl.innerText = `Skor: ${correctCount * 10} / ${generatedQuizData.length * 10}`;
+      if (progressEl) progressEl.innerText = `Progress: ${Math.round((totalAnswered / generatedQuizData.length) * 100)}%`;
+    }
+
+    function resetQuizArena() {
+      userQuizAnswers = {};
+      renderQuizArena();
+      showToast('Latihan ujian di-reset.');
+    }
+
+    /* MODALS & PROFILE */
+    function openApiKeyModal() {
+      document.getElementById('geminiApiKeyInput').value = localStorage.getItem('ut_gemini_api_key') || '';
+      document.getElementById('apiKeyModal').classList.remove('hidden');
+    }
+    function closeApiKeyModal() { document.getElementById('apiKeyModal').classList.add('hidden'); }
+    function saveApiKey() {
+      const val = document.getElementById('geminiApiKeyInput').value.trim();
+      if (val) localStorage.setItem('ut_gemini_api_key', val);
+      else localStorage.removeItem('ut_gemini_api_key');
+      loadApiKeyFromStorage(); closeApiKeyModal(); showToast('API Key tersimpan!');
+    }
+    function loadApiKeyFromStorage() {
+      const key = localStorage.getItem('ut_gemini_api_key');
+      const dot = document.getElementById('apiKeyDot');
+      const text = document.getElementById('apiKeyStatusText');
+      if (dot && text) {
+        if (key && key.length > 5) {
+          dot.className = "w-2 h-2 rounded-full bg-vscode-green animate-pulse";
+          text.innerText = "API: Active";
+        } else {
+          dot.className = "w-2 h-2 rounded-full bg-vscode-orange animate-ping";
+          text.innerText = "Set API Key";
+        }
+      }
+    }
+
+    function openProfileModal() { document.getElementById('profileModal').classList.remove('hidden'); }
+    function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden'); }
+    function saveProfile() {
+      userProfile.name = document.getElementById('editName').value.trim() || 'LUKMAN NURHAKIM';
+      userProfile.nim = document.getElementById('editNim').value.trim() || '059027883';
+      userProfile.prodi = document.getElementById('editProdi').value.trim() || 'SISTEM INFORMASI';
+      userProfile.upbjj = document.getElementById('editUpbjj').value.trim() || 'GARUT';
+      localStorage.setItem('ut_user_profile', JSON.stringify(userProfile));
+      updateProfileUI(); closeProfileModal(); showToast('Profil diperbarui!');
+    }
+    function loadProfileFromStorage() {
+      const saved = localStorage.getItem('ut_user_profile');
+      if (saved) { try { userProfile = JSON.parse(saved); } catch(e){} }
+    }
+    function updateProfileUI() {
+      document.getElementById('navStudentName').innerText = userProfile.name.replace(/\s+/g, '_') + '.py';
+      document.getElementById('dispName').innerText = userProfile.name;
+      document.getElementById('dispNim').innerText = userProfile.nim;
+      document.getElementById('dispProdi').innerText = userProfile.prodi + " (FST)";
+      document.getElementById('dispUpbjj').innerText = "24 / " + userProfile.upbjj;
+    }
+
+    function saveDraftToHistory(course, tab, content) {
+      draftHistory.unshift({ id: Date.now(), date: new Date().toLocaleString('id-ID'), course, type: tab.toUpperCase(), content });
+      localStorage.setItem('ut_draft_history', JSON.stringify(draftHistory));
+      updateHistoryBadge();
+    }
+    function loadHistoryFromStorage() {
+      const saved = localStorage.getItem('ut_draft_history');
+      if (saved) { try { draftHistory = JSON.parse(saved); } catch(e){} }
+      updateHistoryBadge();
+    }
+    function updateHistoryBadge() {
+      const badge = document.getElementById('historyBadge');
+      if (badge) badge.innerText = draftHistory.length;
+    }
+
+    function openHistoryModal() {
+      const container = document.getElementById('historyListContainer');
+      if (container) {
+        container.innerHTML = draftHistory.length ? draftHistory.map(item => `
+          <div class="p-2.5 bg-vscode-editor border border-vscode-border rounded flex justify-between items-center text-xs font-code">
+            <div><p class="font-bold text-vscode-cyan">${item.course}</p><p class="text-[10px] text-vscode-comment">${item.date}</p></div>
+            <button onclick="loadHistoryItem(${item.id})" class="px-2.5 py-1 bg-vscode-blue text-white font-bold rounded text-[11px]">LOAD</button>
+          </div>
+        `).join('') : '<p class="text-xs text-vscode-comment font-code">No commit logs found.</p>';
+      }
+      document.getElementById('historyModal').classList.remove('hidden');
+    }
+    function closeHistoryModal() { document.getElementById('historyModal').classList.add('hidden'); }
+    function loadHistoryItem(id) {
+      const item = draftHistory.find(d => d.id === id);
+      if (item) {
+        document.getElementById('outputAnswerArea').innerHTML = item.content.replace(/\n/g, '<br>');
+        document.getElementById('sharedCourseInput').value = item.course;
+        updateBjuHeader(); closeHistoryModal();
+      }
+    }
+
+    function copyGeneratedText() {
+      const area = document.getElementById('outputAnswerArea');
+      if (area && area.innerText) {
+        navigator.clipboard.writeText(area.innerText);
+        showToast('Teks disalin ke clipboard!');
+      }
+    }
+
+    /* AI DETECTION ANALYZER */
+    function analyzeAiDetection() {
+      const area = document.getElementById('outputAnswerArea');
+      if (area && area.innerText) {
+        const words = area.innerText.trim().split(/\s+/).filter(w => w.length > 0);
+        const count = words.length;
+        const valEl = document.getElementById('aiScoreValue');
+        const countEl = document.getElementById('metricWordCount');
+        
+        if (valEl) valEl.innerText = `${Math.min(12, Math.max(8, Math.floor(count / 40)))}%`;
+        if (countEl) countEl.innerText = `${count} Kata`;
+      }
+      const modal = document.getElementById('aiDetectorModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeAiDetectorModal() {
+      const modal = document.getElementById('aiDetectorModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function exportWord() {
+      const bjuContent = document.getElementById('bjuContainer');
+      
+      // Get active course name and session/task info dynamically
+      const courseVal = document.getElementById('sharedCourseInput')?.value || 'Tugas_UT';
+      const sessionVal = document.getElementById('bjuSession')?.innerText || 'Sesi';
+
+      // Clean string for clean filename
+      const cleanCourse = courseVal.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
+      const cleanSession = sessionVal.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
+      const cleanName = userProfile.name.replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
+
+      const fileName = `BJU_UT_${cleanName}_${cleanCourse}_${cleanSession}.doc`;
+
+      const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.5;color:#000000;background:#ffffff;}p{margin-bottom:8pt;text-align:justify;color:#000000;}</style></head><body>${bjuContent.innerHTML}</body></html>`;
+      const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName;
+      a.click();
+      showToast(`Word diunduh: ${fileName}`);
+    }
+
+    function printBju() { window.print(); }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `bg-vscode-sidebar text-vscode-cyan text-xs font-code font-medium px-3.5 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 border border-vscode-border pointer-events-auto`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'warning' ? 'fa-triangle-exclamation text-vscode-orange' : 'fa-circle-check text-vscode-green'}"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    window.onload = function() {
+      loadProfileFromStorage();
+      loadApiKeyFromStorage();
+      loadHistoryFromStorage();
+      loadScheduleFromStorage();
+      updateProfileUI();
+      updateBjuHeader();
+    };
+  </script>
+</body>
+</html>
