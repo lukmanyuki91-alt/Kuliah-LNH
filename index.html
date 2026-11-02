@@ -140,7 +140,13 @@
         <span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
       </div>
       <div class="flex items-center space-x-2 text-slate-400">
-        <i class="fa-solid fa-code text-vscode-blueLight text-sm"></i>
+        <!-- LOGO UT VECTOR DI HEADER HTTP / TITLEBAR -->
+        <svg class="w-5 h-5 shrink-0" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="92" fill="#003366" stroke="#FFC107" stroke-width="8"/>
+          <path d="M100 25 L115 65 L158 65 L123 90 L137 130 L100 105 L63 130 L77 90 L42 65 L85 65 Z" fill="#FFC107"/>
+          <path d="M35 125 Q100 165 165 125 Q100 185 35 125" fill="#0055A5" stroke="#FFFFFF" stroke-width="4"/>
+          <text x="100" y="172" font-family="Arial, sans-serif" font-weight="bold" font-size="12" fill="#FFFFFF" text-anchor="middle">UT</text>
+        </svg>
         <span class="font-bold text-white">asisten_ut_workspace.py</span>
         <span class="text-vscode-comment text-[11px] hidden sm:inline">// VS Code IDE &amp; Interactive Exam Studio</span>
       </div>
@@ -971,6 +977,10 @@
     let currentDetailedSummary = '';
     let currentTab = 'discussion';
     let bjuLogoData = localStorage.getItem('ut_bju_logo') || '';
+    
+    // DEFAULT LOGO SVG UNIVERSITAS TERBUKA UNTUK SIDE PREVIEW & WORD EXPORT
+    const defaultUtLogoSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92" fill="%23003366" stroke="%23FFC107" stroke-width="8"/><path d="M100 25 L115 65 L158 65 L123 90 L137 130 L100 105 L63 130 L77 90 L42 65 L85 65 Z" fill="%23FFC107"/><path d="M35 125 Q100 165 165 125 Q100 185 35 125" fill="%230055A5" stroke="%23FFFFFF" stroke-width="4"/><text x="100" y="172" font-family="Arial, sans-serif" font-weight="bold" font-size="13" fill="%23FFFFFF" text-anchor="middle">UNIVERSITAS TERBUKA</text></svg>`;
+
     let userAuth = {
       isLoggedIn: true,
       nim: '059027883',
@@ -1699,9 +1709,10 @@ ATURAN UTAMA PENULISAN (WAJIB KETAT):
         summaryArea.innerHTML = `<div class="p-4 text-center text-vscode-comment text-xs"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Extracting detailed memory notes...</div>`;
       }
 
-      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      const candidateModels = ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-1.5-flash'];
       let userKey = localStorage.getItem('ut_gemini_api_key') || localStorage.getItem('gemini_api_key') || '';
       let generatedText = null;
+      let lastErrorMessage = '';
 
       for (let modelName of candidateModels) {
         try {
@@ -1716,8 +1727,13 @@ ATURAN UTAMA PENULISAN (WAJIB KETAT):
             const data = await response.json();
             generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (generatedText) break;
+          } else {
+            const errData = await response.json().catch(() => ({}));
+            lastErrorMessage = errData.error?.message || `HTTP ${response.status} (${response.statusText})`;
           }
-        } catch (err) {}
+        } catch (err) {
+          lastErrorMessage = err.message || 'Network error';
+        }
       }
 
       if (generatedText) {
@@ -1748,7 +1764,17 @@ ATURAN UTAMA PENULISAN (WAJIB KETAT):
         saveDraftToHistory(course, currentTab, mainBjuText);
         showToast('BJU UT & Rangkuman Rinci Ujian berhasil dibuat!');
       } else if (outputArea) {
-        outputArea.innerHTML = `<p class="p-4 text-vscode-red font-bold font-code text-xs">Gagal terhubung ke Gemini API. Silakan periksa API Key Anda.</p>`;
+        outputArea.innerHTML = `
+          <div class="p-4 bg-vscode-editor border border-vscode-red rounded-lg text-vscode-red text-xs font-code space-y-2">
+            <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Gagal terhubung ke Gemini API.</p>
+            <p class="text-slate-300">Detail kendala: ${lastErrorMessage || 'Silakan periksa API Key Anda.'}</p>
+            <div class="pt-2">
+              <button onclick="openApiKeyModal()" class="px-3 py-1.5 bg-vscode-blue text-white rounded font-bold hover:bg-blue-600 transition">
+                <i class="fa-solid fa-key mr-1"></i> Set / Perbarui API Key
+              </button>
+            </div>
+          </div>
+        `;
       }
     }
 
@@ -1829,9 +1855,10 @@ SANGAT IMPORTANT: RESPON WAJIB BERUPA VALID JSON FORMAT MURNI DENGAN STRUKTUR BE
   }
 ]`;
 
-      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      const candidateModels = ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-1.5-flash'];
       let userKey = localStorage.getItem('ut_gemini_api_key') || localStorage.getItem('gemini_api_key') || '';
       let generatedJson = null;
+      let lastQuizErrorMessage = '';
 
       for (let modelName of candidateModels) {
         try {
@@ -1850,8 +1877,13 @@ SANGAT IMPORTANT: RESPON WAJIB BERUPA VALID JSON FORMAT MURNI DENGAN STRUKTUR BE
               generatedJson = JSON.parse(cleanedText);
               if (Array.isArray(generatedJson)) break;
             }
+          } else {
+            const errData = await response.json().catch(() => ({}));
+            lastQuizErrorMessage = errData.error?.message || `HTTP ${response.status} (${response.statusText})`;
           }
-        } catch (err) {}
+        } catch (err) {
+          lastQuizErrorMessage = err.message || 'Network error';
+        }
       }
 
       if (generatedJson && Array.isArray(generatedJson)) {
@@ -1863,7 +1895,12 @@ SANGAT IMPORTANT: RESPON WAJIB BERUPA VALID JSON FORMAT MURNI DENGAN STRUKTUR BE
         arena.innerHTML = `
           <div class="p-6 bg-vscode-editor border border-vscode-red rounded-xl text-vscode-red text-xs space-y-2 font-code">
             <p class="font-bold text-sm"><i class="fa-solid fa-triangle-exclamation"></i> Gagal Membuat Soal Ujian Interaktif</p>
-            <p>Pastikan API Key Gemini sudah terpasang dan kuota cukup.</p>
+            <p class="text-slate-300">Detail kendala: ${lastQuizErrorMessage || 'Pastikan API Key Gemini sudah terpasang atau valid.'}</p>
+            <div class="pt-2">
+              <button onclick="openApiKeyModal()" class="px-3 py-1.5 bg-vscode-blue text-white rounded font-bold hover:bg-blue-600 transition">
+                <i class="fa-solid fa-key mr-1"></i> Perbarui API Key
+              </button>
+            </div>
           </div>
         `;
       }
@@ -2142,7 +2179,7 @@ SANGAT IMPORTANT: RESPON WAJIB BERUPA VALID JSON FORMAT MURNI DENGAN STRUKTUR BE
             showToast('Penyimpanan penuh, logo disimpan untuk sesi ini.', 'warning');
           }
           renderLogoUI();
-          showToast('Logo BJU berhasil dipasang!');
+          showToast('Logo kustom berhasil dipasang!');
         };
         reader.readAsDataURL(file);
       }
@@ -2154,20 +2191,20 @@ SANGAT IMPORTANT: RESPON WAJIB BERUPA VALID JSON FORMAT MURNI DENGAN STRUKTUR BE
       const input = document.getElementById('logoFileInput');
       if (input) input.value = '';
       renderLogoUI();
-      showToast('Logo BJU dihapus.');
+      showToast('Logo kustom dihapus, kembali ke logo default UT.');
     }
 
     function renderLogoUI() {
       const container = document.getElementById('bjuLogoPreviewContainer');
       const img = document.getElementById('bjuLogoImg');
       const removeBtn = document.getElementById('removeLogoBtn');
-      if (bjuLogoData) {
-        if (img) img.src = bjuLogoData;
-        if (container) container.classList.remove('hidden');
-        if (removeBtn) removeBtn.classList.remove('hidden');
-      } else {
-        if (container) container.classList.add('hidden');
-        if (removeBtn) removeBtn.classList.add('hidden');
+      const activeLogo = bjuLogoData || defaultUtLogoSvg;
+
+      if (img) img.src = activeLogo;
+      if (container) container.classList.remove('hidden');
+      if (removeBtn) {
+        if (bjuLogoData) removeBtn.classList.remove('hidden');
+        else removeBtn.classList.add('hidden');
       }
     }
 
@@ -2190,7 +2227,8 @@ SANGAT IMPORTANT: RESPON WAJIB BERUPA VALID JSON FORMAT MURNI DENGAN STRUKTUR BE
       const bjuCourse = document.getElementById('bjuCourse')?.innerText || 'MSIM4301 - Analisis & Perancangan Sistem';
       const bjuSession = document.getElementById('bjuSession')?.innerText || 'Sesi 1';
 
-      const logoHtml = bjuLogoData ? `<div style="text-align: center; margin-bottom: 15px;"><img src="${bjuLogoData}" style="width: 6cm; height: 6cm; object-fit: contain; display: inline-block;" /></div>` : '';
+      const activeLogoForWord = bjuLogoData || defaultUtLogoSvg;
+      const logoHtml = `<div style="text-align: center; margin-bottom: 15px;"><img src="${activeLogoForWord}" style="width: 6cm; height: 6cm; object-fit: contain; display: inline-block;" /></div>`;
 
       const headerText = `
         <div style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; margin-bottom: 20px;">
