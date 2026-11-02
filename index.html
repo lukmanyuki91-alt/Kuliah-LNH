@@ -84,16 +84,14 @@
       touch-action: manipulation;
     }
 
-    /* Print / PDF Export & Academic Styling - Times New Roman 12pt, 1.15 Spacing, 1-inch (2.54cm) Margins */
+    /* Print / PDF Export Styling */
     @media print {
       body * {
         visibility: hidden !important;
       }
       #bjuContainer, #bjuContainer * {
         visibility: visible !important;
-        color: #000000 !important;
-        background: #ffffff !important;
-        font-family: 'Times New Roman', Times, serif !important;
+        color: #000 !important;
       }
       #bjuContainer {
         position: absolute !important;
@@ -101,21 +99,10 @@
         top: 0 !important;
         width: 100% !important;
         margin: 0 !important;
-        padding: 2.54cm !important;
+        padding: 10mm !important;
         box-shadow: none !important;
         border: none !important;
-        background: #ffffff !important;
-      }
-      #outputAnswerArea {
-        font-family: 'Times New Roman', Times, serif !important;
-        font-size: 12pt !important;
-        line-height: 1.15 !important;
-        color: #000000 !important;
-        background: #ffffff !important;
-      }
-      #outputAnswerArea p {
-        margin-bottom: 0pt !important;
-        line-height: 1.15 !important;
+        background: white !important;
       }
       .no-print {
         display: none !important;
@@ -261,8 +248,8 @@
               <span class="syn-keyword">def</span> <span class="syn-function">response_language</span>():
               <select id="languageModeSelect" class="w-full mt-1 px-3 py-2 bg-vscode-editor border border-vscode-border rounded text-vscode-teal focus:outline-none font-code">
                 <option value="indonesian">Bahasa Indonesia (Baku BMP)</option>
-                <option value="bilingual">Bilingual (Bahasa Indonesia + Terjemahan English)</option>
-                <option value="english">Full English Translation (100% Bahasa Inggris)</option>
+                <option value="bilingual">Bilingual (English + ID)</option>
+                <option value="english">Full English (100%)</option>
               </select>
             </div>
           </div>
@@ -481,6 +468,15 @@
         </div>
 
         <div class="flex items-center space-x-1.5 text-xs">
+          <!-- TOMBOL UNGGAH & HAPUS LOGO -->
+          <label class="px-2.5 py-1.5 bg-vscode-editor hover:bg-slate-700 text-vscode-yellow rounded border border-vscode-border flex items-center gap-1 transition active:scale-95 cursor-pointer" title="Unggah / Simpan Logo BJU (PNG/JPG)">
+            <i class="fa-solid fa-image text-vscode-yellow"></i> Logo
+            <input type="file" id="logoFileInput" accept="image/*" onchange="handleLogoUpload(event)" class="hidden">
+          </label>
+          <button id="removeLogoBtn" onclick="removeLogo()" class="px-2 py-1.5 bg-vscode-editor hover:bg-vscode-red/20 text-vscode-red rounded border border-vscode-border hidden transition active:scale-95" title="Hapus Logo">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+
           <button onclick="analyzeAiDetection()" class="px-2.5 py-1.5 bg-vscode-editor hover:bg-slate-700 text-vscode-green rounded border border-vscode-border flex items-center gap-1 transition active:scale-95" title="Analisis Deteksi AI">
             <i class="fa-solid fa-chart-pie text-vscode-green"></i> Cek AI
           </button>
@@ -502,31 +498,31 @@
       <!-- BJU PAPER CANVAS SHEET -->
       <div id="bjuContainer" class="bg-vscode-editor rounded-xl shadow-xl border border-vscode-border p-5 sm:p-6 flex-1 flex flex-col min-h-[620px] relative font-code text-vscode-cyan">
         
-        <div class="border-2 border-vscode-border mb-5 rounded overflow-hidden text-vscode-cyan text-xs font-code bg-vscode-sidebar">
-          <div class="bg-vscode-tabInactive text-vscode-yellow px-3 py-1.5 font-bold text-center uppercase tracking-wider text-xs flex items-center justify-between border-b border-vscode-border">
-            <span class="text-vscode-orange text-[10px]">// UNIVERSITAS TERBUKA</span>
-            <span class="text-white">LEMBAR JAWABAN TUGAS TUTON</span>
+        <div class="border border-vscode-border mb-5 rounded p-3.5 text-vscode-cyan text-xs font-code bg-vscode-sidebar text-left space-y-1.5">
+          <div class="text-vscode-yellow font-bold uppercase tracking-wider text-xs pb-1.5 mb-2 border-b border-vscode-border flex justify-between items-center">
+            <span>LEMBAR JAWABAN TUGAS TUTON UNIVERSITAS TERBUKA</span>
             <span class="text-vscode-green text-[10px]">2026/2027 GANJIL</span>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-vscode-border bg-vscode-sidebar">
-            <div class="p-2.5 space-y-1">
-              <div class="flex"><span class="w-28 font-bold text-vscode-teal">Nama Mahasiswa</span>: <span id="dispName" class="font-bold text-white uppercase ml-1">LUKMAN NURHAKIM</span></div>
-              <div class="flex"><span class="w-28 font-bold text-vscode-teal">NIM</span>: <span id="dispNim" class="font-mono font-bold text-vscode-yellow ml-1">059027883</span></div>
-              <div class="flex"><span class="w-28 font-bold text-vscode-teal">Program Studi</span>: <span id="dispProdi" class="ml-1 text-vscode-cyan">SISTEM INFORMASI (FST)</span></div>
-              <div class="flex"><span class="w-28 font-bold text-vscode-teal">UPBJJ - UT</span>: <span id="dispUpbjj" class="ml-1 text-vscode-orange">24 / GARUT</span></div>
+          <div class="flex items-start justify-between gap-3">
+            <div class="space-y-1 text-xs flex-1">
+              <div class="flex"><span class="w-32 font-bold text-vscode-teal shrink-0">Nama Mahasiswa</span>: <span id="dispName" class="font-bold text-white uppercase ml-1">LUKMAN NURHAKIM</span></div>
+              <div class="flex"><span class="w-32 font-bold text-vscode-teal shrink-0">NIM</span>: <span id="dispNim" class="font-mono font-bold text-vscode-yellow ml-1">059027883</span></div>
+              <div class="flex"><span class="w-32 font-bold text-vscode-teal shrink-0">Program Studi</span>: <span id="dispProdi" class="ml-1 text-vscode-cyan">SISTEM INFORMASI (FST)</span></div>
+              <div class="flex"><span class="w-32 font-bold text-vscode-teal shrink-0">UPBJJ - UT</span>: <span id="dispUpbjj" class="ml-1 text-vscode-orange">24 / GARUT</span></div>
+              <div class="flex"><span class="w-32 font-bold text-vscode-teal shrink-0">Mata Kuliah</span>: <span id="bjuCourse" class="font-bold text-vscode-yellow ml-1">MSIM4301 - Analisis &amp; Perancangan Sistem</span></div>
+              <div class="flex"><span class="w-32 font-bold text-vscode-teal shrink-0">Sesi / Tugas</span>: <span id="bjuSession" class="font-semibold text-vscode-pink ml-1">Sesi 1</span></div>
             </div>
-
-            <div class="p-2.5 space-y-1">
-              <div class="flex"><span class="w-28 font-bold text-vscode-teal">Mata Kuliah</span>: <span id="bjuCourse" class="font-bold text-vscode-yellow ml-1">MSIM4301 - Analisis &amp; Perancangan Sistem</span></div>
-              <div class="flex"><span class="w-28 font-bold text-vscode-teal">Sesi / Tugas</span>: <span id="bjuSession" class="font-semibold text-vscode-pink ml-1">Sesi 1</span></div>
+            <!-- LOGO PREVIEW CONTAINER -->
+            <div id="bjuLogoPreviewContainer" class="hidden shrink-0 self-center pl-2 border-l border-vscode-border/50">
+              <img id="bjuLogoImg" src="" alt="Logo BJU" class="max-h-20 max-w-[90px] object-contain">
             </div>
           </div>
         </div>
 
         <!-- GENERATED ANSWER CONTENT AREA -->
-        <div id="outputAnswerArea" contenteditable="true" class="flex-1 text-slate-900 text-base leading-[1.15] p-4 focus:outline-none focus:ring-1 focus:ring-vscode-blue rounded min-h-[380px] bg-white border border-vscode-border font-academic" style="font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.15; padding: 2.54cm;">
-          <p class="mb-0 leading-[1.15] text-black text-justify"><br></p>
+        <div id="outputAnswerArea" contenteditable="true" class="flex-1 text-vscode-cyan text-xs leading-relaxed p-2 focus:outline-none focus:ring-1 focus:ring-vscode-blue rounded min-h-[380px] font-code bg-vscode-bg border border-vscode-border">
+          <p class="mb-3 leading-relaxed text-vscode-cyan text-justify"><br></p>
         </div>
 
         <div class="mt-4 pt-2 border-t border-vscode-border text-[10px] text-vscode-comment flex flex-wrap justify-between items-center font-code no-print">
@@ -575,6 +571,7 @@
           <h2 class="text-xs font-bold text-vscode-yellow uppercase tracking-wider">quiz_generator_config.py</h2>
         </div>
 
+        <!-- PDF Module Uploader & Google Drive Link for Quiz -->
         <div>
           <span class="syn-comment">// 1. Bahan Modul BMP (Upload PDF atau Masukkan Link Google Drive):</span>
           <div id="quizDropZone" class="mt-1.5 border-2 border-dashed border-vscode-border hover:border-vscode-blue rounded-xl p-3 text-center bg-vscode-editor transition cursor-pointer relative">
@@ -586,6 +583,7 @@
             </div>
           </div>
 
+          <!-- Google Drive Link Input for Quiz -->
           <div class="mt-2 space-y-1">
             <div class="flex gap-1.5">
               <input type="text" id="quizGdriveLinkInput" placeholder="https://drive.google.com/file/d/.../view" class="w-full p-2 bg-vscode-editor border border-vscode-border rounded text-xs text-vscode-cyan focus:outline-none font-code">
@@ -601,6 +599,7 @@
           </div>
         </div>
 
+        <!-- Quiz Parameters -->
         <div class="space-y-2 pt-2 border-t border-vscode-border text-xs">
           <div>
             <span class="syn-keyword">jumlah_soal</span> = 
@@ -637,6 +636,7 @@
     <section class="lg:col-span-8 flex flex-col gap-3 font-code">
       <div class="bg-vscode-sidebar p-3 rounded-xl border border-vscode-border vscode-shadow flex-1 flex flex-col min-h-[580px]">
         
+        <!-- Arena Header & Score Bar -->
         <div class="flex flex-wrap items-center justify-between pb-3 mb-3 border-b border-vscode-border gap-2">
           <div class="flex items-center space-x-2">
             <i class="fa-solid fa-graduation-cap text-vscode-yellow text-lg"></i>
@@ -652,6 +652,7 @@
           </div>
         </div>
 
+        <!-- Interactive Question Content Box -->
         <div id="quizArenaContainer" class="flex-1 bg-vscode-editor border border-vscode-border rounded-xl p-5 overflow-y-auto max-h-[620px] space-y-6">
           <div class="text-center py-24 text-vscode-comment space-y-3">
             <i class="fa-solid fa-laptop-code text-5xl text-vscode-blueLight"></i>
@@ -718,6 +719,7 @@
         </table>
       </div>
 
+      <!-- Tutor List Reference Sub-table -->
       <div class="pt-3 border-t border-vscode-border">
         <p class="text-xs font-bold text-vscode-yellow mb-2">// Daftar Nama Tutor Pengampu Semester Ini:</p>
         <div id="tutorListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
@@ -727,7 +729,7 @@
     </div>
   </main>
 
-  <!-- VIEW 4: MONITOR NILAI & KONTRIBUSI 30% -->
+  <!-- VIEW 4: MONITOR NILAI & KONTRIBUSI 30% (UPDATED COMPREHENSIVE VIEW) -->
   <main id="mainView-grades" class="max-w-[1850px] mx-auto px-2 sm:px-4 py-3 flex-1 w-full flex flex-col gap-4 hidden font-code">
     <div class="bg-vscode-sidebar p-4 rounded-xl border border-vscode-border vscode-shadow space-y-4">
       <div class="flex flex-wrap items-center justify-between pb-3 border-b border-vscode-border gap-2">
@@ -735,16 +737,17 @@
           <i class="fa-solid fa-chart-line text-vscode-orange text-lg"></i>
           <div>
             <h2 class="text-sm font-bold text-white uppercase tracking-wider">Monitor Nilai (Diskusi, Tugas, Kehadiran &amp; Kontribusi 30%)</h2>
-            <p class="text-[10px] text-vscode-comment">Sabtu, 31 Oktober 2026 • Semester: 1</p>
+            <p class="text-[10px] text-vscode-comment">Senin, 02 November 2026 • Semester: 1</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="openGradeInputModal()" class="px-3 py-1.5 bg-vscode-blue hover:bg-blue-600 text-white rounded text-xs font-bold flex items-center gap-1.5 transition active:scale-95">
-            <i class="fa-solid fa-pen-to-square"></i> Input Nilai &amp; Kehadiran
+            <i class="fa-solid fa-pen-to-square"></i> Input Nilai Tuton &amp; Kehadiran
           </button>
         </div>
       </div>
 
+      <!-- Expanded Detailed Grades Table -->
       <div class="overflow-x-auto rounded-lg border border-vscode-border">
         <table class="w-full text-xs text-left border-collapse text-vscode-cyan">
           <thead>
@@ -769,6 +772,7 @@
         </table>
       </div>
 
+      <!-- Catatan Perhatian Box -->
       <div class="p-3 bg-vscode-editor border border-vscode-border rounded-lg space-y-2 text-xs">
         <div class="flex items-center gap-2 text-vscode-yellow font-bold">
           <i class="fa-solid fa-triangle-exclamation"></i> Catatan Perhatian Akademik
@@ -816,7 +820,7 @@
     </div>
   </div>
 
-  <!-- MODAL 5: INPUT NILAI TUTON -->
+  <!-- MODAL 5: INPUT NILAI TUTON (UPDATED TO DETAILED MULTI-SESSION) -->
   <div id="gradeInputModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 font-code">
     <div class="bg-vscode-sidebar rounded-xl border border-vscode-border max-w-3xl w-full p-5 vscode-shadow flex flex-col space-y-4 max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-vscode-border pb-2">
@@ -826,7 +830,7 @@
         <button onclick="closeGradeInputModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
 
-      <p class="text-[11px] text-vscode-comment">Masukkan Nilai Diskusi (S1-S8), Nilai Tugas 1, 2, 3, dan Persentase Kehadiran (0-100%) per mata kuliah.</p>
+      <p class="text-[11px] text-vscode-comment">Masukkan Nilai Diskusi (S1-S8), Nilai Tugas 1, 2, 3, dan Persentase Kehadiran (0-100%) untuk setiap mata kuliah.</p>
 
       <div id="gradeInputListContainer" class="space-y-3 overflow-y-auto max-h-[420px] pr-1">
         <!-- Dynamically filled inputs -->
@@ -966,6 +970,7 @@
     let userQuizAnswers = {};
     let currentDetailedSummary = '';
     let currentTab = 'discussion';
+    let bjuLogoData = localStorage.getItem('ut_bju_logo') || '';
     let userAuth = {
       isLoggedIn: true,
       nim: '059027883',
@@ -988,91 +993,6 @@
       { no: 6, code: 'STSI4101', name: 'Pengantar Sistem Informasi', tutor: 'Mukhlis Febriady, M.Kom.', sessionScores: [95,93,96,94,95,97,95,96], taskScores: [94, 96, 98], attendance: 98, checks: [true,true, true,true, true,true, true,true, true,true, true,true, true,false, false,false] },
       { no: 7, code: 'STSI4102', name: 'Algoritma dan Pemrograman', tutor: 'Nuari Anisa Sivi, S.Kom.,M.T.I', sessionScores: [null,null,null,null,null,null,null,null], taskScores: [null, null, null], attendance: 80, checks: [true,true, true,true, true,true, true,true, true,true, true,true, false,false, false,false] }
     ];
-
-    // Initialize application on load
-    window.onload = function() {
-      loadScheduleFromStorage();
-      populateCourseAndTutorDropdowns();
-      checkLoginState();
-    };
-
-    function checkLoginState() {
-      const logged = localStorage.getItem('isLoggedIn');
-      const loginModal = document.getElementById('loginModal');
-      const statusText = document.getElementById('navLoginStatus');
-      if (logged === 'true') {
-        if (loginModal) loginModal.classList.add('hidden');
-        if (statusText) statusText.innerText = 'Online (Lukman)';
-      } else {
-        if (loginModal) loginModal.classList.remove('hidden');
-        if (statusText) statusText.innerText = 'Login';
-      }
-    }
-
-    function handleLoginSubmit() {
-      const uInput = document.getElementById('loginNimInput').value.trim();
-      const pInput = document.getElementById('loginPasswordInput').value.trim();
-      if (uInput === 'lukman' && pInput === '19911228') {
-        localStorage.setItem('isLoggedIn', 'true');
-        document.getElementById('loginModal').classList.add('hidden');
-        document.getElementById('navLoginStatus').innerText = 'Online (Lukman)';
-        showToast('Login Berhasil! Selamat datang, Lukman Nurhakim.');
-      } else {
-        showToast('Username atau password salah! Gunakan lukman / 19911228', 'warning');
-      }
-    }
-
-    function handleLogout() {
-      localStorage.removeItem('isLoggedIn');
-      document.getElementById('loginModal').classList.remove('hidden');
-      document.getElementById('navLoginStatus').innerText = 'Login';
-      showToast('Berhasil keluar akun.');
-    }
-
-    function openLoginModal() {
-      document.getElementById('loginModal').classList.remove('hidden');
-    }
-    function closeLoginModal() {
-      document.getElementById('loginModal').classList.add('hidden');
-    }
-
-    function switchMainView(viewName) {
-      const viewBju = document.getElementById('mainView-bju');
-      const viewQuiz = document.getElementById('mainView-quiz');
-      const viewSchedule = document.getElementById('mainView-schedule');
-      const viewGrades = document.getElementById('mainView-grades');
-      const btnBju = document.getElementById('viewBtn-bju');
-      const btnQuiz = document.getElementById('viewBtn-quiz');
-      const btnSchedule = document.getElementById('viewBtn-schedule');
-      const btnGrades = document.getElementById('viewBtn-grades');
-
-      if (!viewBju || !viewQuiz || !viewSchedule || !viewGrades || !btnBju || !btnQuiz || !btnSchedule || !btnGrades) return;
-
-      viewBju.classList.add('hidden');
-      viewQuiz.classList.add('hidden');
-      viewSchedule.classList.add('hidden');
-      viewGrades.classList.add('hidden');
-      btnBju.className = "px-3 py-1 rounded text-slate-300 hover:text-white transition flex items-center gap-1.5";
-      btnQuiz.className = "px-3 py-1 rounded text-vscode-yellow hover:text-white transition flex items-center gap-1.5";
-      btnSchedule.className = "px-3 py-1 rounded text-vscode-green hover:text-white transition flex items-center gap-1.5";
-      btnGrades.className = "px-3 py-1 rounded text-vscode-orange hover:text-white transition flex items-center gap-1.5";
-
-      if (viewName === 'bju') {
-        viewBju.classList.remove('hidden');
-        btnBju.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
-      } else if (viewName === 'quiz') {
-        viewQuiz.classList.remove('hidden');
-        btnQuiz.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
-      } else if (viewName === 'schedule') {
-        viewSchedule.classList.remove('hidden');
-        btnSchedule.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
-        renderScheduleTable();
-      } else if (viewName === 'grades') {
-        viewGrades.classList.remove('hidden');
-        btnGrades.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
-        renderGradesTable();
-      }
-    }
 
     function renderScheduleTable() {
       const tbody = document.getElementById('scheduleTableBody');
@@ -1221,7 +1141,45 @@
       showToast(`Selected Course: ${courseName}`);
     }
 
-    /* MONITOR NILAI & KONTRIBUSI 30% FUNCTIONS */
+    function switchMainView(viewName) {
+      const viewBju = document.getElementById('mainView-bju');
+      const viewQuiz = document.getElementById('mainView-quiz');
+      const viewSchedule = document.getElementById('mainView-schedule');
+      const viewGrades = document.getElementById('mainView-grades');
+      const btnBju = document.getElementById('viewBtn-bju');
+      const btnQuiz = document.getElementById('viewBtn-quiz');
+      const btnSchedule = document.getElementById('viewBtn-schedule');
+      const btnGrades = document.getElementById('viewBtn-grades');
+
+      if (!viewBju || !viewQuiz || !viewSchedule || !viewGrades || !btnBju || !btnQuiz || !btnSchedule || !btnGrades) return;
+
+      viewBju.classList.add('hidden');
+      viewQuiz.classList.add('hidden');
+      viewSchedule.classList.add('hidden');
+      viewGrades.classList.add('hidden');
+      btnBju.className = "px-3 py-1 rounded text-slate-300 hover:text-white transition flex items-center gap-1.5";
+      btnQuiz.className = "px-3 py-1 rounded text-vscode-yellow hover:text-white transition flex items-center gap-1.5";
+      btnSchedule.className = "px-3 py-1 rounded text-vscode-green hover:text-white transition flex items-center gap-1.5";
+      btnGrades.className = "px-3 py-1 rounded text-vscode-orange hover:text-white transition flex items-center gap-1.5";
+
+      if (viewName === 'bju') {
+        viewBju.classList.remove('hidden');
+        btnBju.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
+      } else if (viewName === 'quiz') {
+        viewQuiz.classList.remove('hidden');
+        btnQuiz.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
+      } else if (viewName === 'schedule') {
+        viewSchedule.classList.remove('hidden');
+        btnSchedule.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
+        renderScheduleTable();
+      } else if (viewName === 'grades') {
+        viewGrades.classList.remove('hidden');
+        btnGrades.className = "px-3 py-1 rounded bg-vscode-blue text-white font-bold transition flex items-center gap-1.5";
+        renderGradesTable();
+      }
+    }
+
+    /* MONITOR NILAI & KONTRIBUSI 30% FUNCTIONS (UPDATED REFINED FORMULA) */
     function renderGradesTable() {
       const tbody = document.getElementById('gradesTableBody');
       const warningsContainer = document.getElementById('gradeWarningsContainer');
@@ -1234,30 +1192,39 @@
         const tasks = row.taskScores || [null, null, null];
         const attendance = row.attendance !== undefined ? row.attendance : 85;
 
-        // Combine scores for average & 30% contribution calculation
-        let allValid = [];
-        scores.forEach(s => { if (s !== null && !isNaN(s)) allValid.push(s); });
-        tasks.forEach(t => { if (t !== null && !isNaN(t)) allValid.push(t); });
+        let validDisc = scores.filter(s => s !== null && s !== undefined && !isNaN(s));
+        let validTasks = tasks.filter(t => t !== null && t !== undefined && !isNaN(t));
 
+        let avgDisc = validDisc.length > 0 ? validDisc.reduce((a, b) => a + b, 0) / validDisc.length : 0;
+        let avgTask = validTasks.length > 0 ? validTasks.reduce((a, b) => a + b, 0) / validTasks.length : 0;
+
+        let tutonVal = 0;
         let predicate = '-';
         let contribution = '-';
         let predClass = 'bg-vscode-tabInactive text-slate-400';
 
-        if (allValid.length > 0) {
-          const avg = allValid.reduce((a, b) => a + b, 0) / allValid.length;
-          contribution = (avg * 0.30).toFixed(2);
+        if (validDisc.length > 0 || validTasks.length > 0) {
+          if (validDisc.length > 0 && validTasks.length > 0) {
+            tutonVal = (avgDisc * 0.30) + (avgTask * 0.70);
+          } else if (validDisc.length > 0) {
+            tutonVal = avgDisc;
+          } else {
+            tutonVal = avgTask;
+          }
 
-          if (avg >= 85) { predicate = 'A'; predClass = 'bg-vscode-green/20 text-vscode-green border border-vscode-green/40'; }
-          else if (avg >= 75) { predicate = 'B'; predClass = 'bg-vscode-blue/20 text-vscode-blueLight border border-vscode-blue/40'; }
-          else if (avg >= 65) { predicate = 'C'; predClass = 'bg-vscode-yellow/20 text-vscode-yellow border border-vscode-yellow/40'; }
-          else if (avg >= 50) { predicate = 'D'; predClass = 'bg-vscode-orange/20 text-vscode-orange border border-vscode-orange/40'; }
+          contribution = (tutonVal * 0.30).toFixed(2);
+
+          if (tutonVal >= 85) { predicate = 'A'; predClass = 'bg-vscode-green/20 text-vscode-green border border-vscode-green/40'; }
+          else if (tutonVal >= 75) { predicate = 'B'; predClass = 'bg-vscode-blue/20 text-vscode-blueLight border border-vscode-blue/40'; }
+          else if (tutonVal >= 65) { predicate = 'C'; predClass = 'bg-vscode-yellow/20 text-vscode-yellow border border-vscode-yellow/40'; }
+          else if (tutonVal >= 50) { predicate = 'D'; predClass = 'bg-vscode-orange/20 text-vscode-orange border border-vscode-orange/40'; }
           else { predicate = 'E'; predClass = 'bg-vscode-red/20 text-vscode-red border border-vscode-red/40'; }
         } else {
-          warningsHTML += `<p>• <strong>${row.name}</strong>: Belum ada nilai diskusi/tugas tercatat.</p>`;
+          warningsHTML += `<p>• <strong>${row.name}</strong>: Belum ada nilai diskusi/tugas yang diinput.</p>`;
         }
 
         if (attendance < 75) {
-          warningsHTML += `<p>• <strong>${row.name}</strong>: Kehadiran hanya ${attendance}% (min 75%)</p>`;
+          warningsHTML += `<p>• <strong>${row.name}</strong>: Kehadiran hanya ${attendance}% (minimal 75% agar Tuton berkontribusi ke Nilai Akhir).</p>`;
         }
 
         return `
@@ -1270,7 +1237,7 @@
             ${tasks.map(t => `
               <td class="border border-vscode-border p-1 text-vscode-yellow font-bold">${t !== null && !isNaN(t) ? t : '–'}</td>
             `).join('')}
-            <td class="border border-vscode-border p-2 font-bold text-vscode-green">${attendance}%</td>
+            <td class="border border-vscode-border p-2 font-bold ${attendance >= 75 ? 'text-vscode-green' : 'text-vscode-red'}">${attendance}%</td>
             <td class="border border-vscode-border p-2">
               <span class="px-2.5 py-0.5 rounded font-bold text-xs ${predClass}">${predicate}</span>
             </td>
@@ -1298,7 +1265,7 @@
             <div class="flex justify-between items-center">
               <span class="font-bold text-vscode-yellow">${row.code} - ${row.name}</span>
               <div class="flex items-center gap-1.5">
-                <span class="text-[11px] text-vscode-teal">Kehadiran (%):</span>
+                <span class="text-[11px] text-vscode-teal font-bold">Kehadiran (%):</span>
                 <input type="number" min="0" max="100" id="inputAtt_${rIdx}" value="${attendance}" class="w-16 p-1 bg-vscode-sidebar border border-vscode-border rounded text-vscode-green text-center font-bold focus:outline-none">
               </div>
             </div>
@@ -1316,7 +1283,7 @@
             </div>
 
             <div>
-              <p class="text-[11px] text-vscode-comment mb-1">// Nilai Tugas (Tugas 1, 2, 3):</p>
+              <p class="text-[11px] text-vscode-comment mb-1">// Nilai Tugas Utama (Tugas 1, 2, 3):</p>
               <div class="grid grid-cols-3 gap-2">
                 ${tasks.map((t, tIdx) => `
                   <div>
@@ -1418,132 +1385,871 @@
       return "Selamat Malam";
     }
 
-    /* TOAST HELPER */
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toastContainer');
+    /* QUIZ DRIVE & FILE HANDLERS */
+    function addQuizGdriveLink() {
+      const input = document.getElementById('quizGdriveLinkInput');
+      if (!input || !input.value.trim()) {
+        showToast('Masukkan URL Google Drive terlebih dahulu.', 'warning');
+        return;
+      }
+      const url = input.value.trim();
+      quizAttachedModules.push({
+        id: 'gdrive_' + Date.now(),
+        name: 'Google_Drive_Module_' + (quizAttachedModules.length + 1),
+        text: `--- RUJUKAN MODUL DARI GOOGLE DRIVE LINK ---\nTautan Akses: ${url}\nCatatan Sistem: Materi rujukan bersumber dari Google Drive mahasiswa untuk pembuatan kuis dan latihan ujian interaktif.`
+      });
+      input.value = '';
+      renderQuizModuleList();
+      showToast('Link Google Drive berhasil ditambahkan ke bahan latihan ujian!');
+    }
+
+    async function handleDiscSoalPdfUpload(e) {
+      if (e.target && e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        showToast(`Membaca file soal diskusi: ${file.name}...`);
+        const extractedText = await parsePdfOrTxtFile(file);
+        const discInput = document.getElementById('discTaskInput');
+        if (discInput) {
+          discInput.value = extractedText;
+          showToast('Isi soal diskusi berhasil dimuat dari file!');
+        }
+      }
+    }
+
+    async function handleTaskSoalPdfUpload(e) {
+      if (e.target && e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        showToast(`Membaca file soal tugas: ${file.name}...`);
+        const extractedText = await parsePdfOrTxtFile(file);
+        const taskInput = document.getElementById('taskInstructionsInput');
+        if (taskInput) {
+          taskInput.value = extractedText;
+          showToast('Isi soal tugas berhasil dimuat dari file!');
+        }
+      }
+    }
+
+    async function handleQuizModuleUpload(e) {
+      if (e.target && e.target.files?.length) {
+        showToast(`Membaca ${e.target.files.length} file modul...`);
+        for (let file of e.target.files) {
+          const text = await parsePdfOrTxtFile(file);
+          quizAttachedModules.push({
+            id: Date.now() + '_' + Math.random().toString(36).substring(2, 5),
+            name: file.name,
+            text: text
+          });
+        }
+        renderQuizModuleList();
+        showToast('File modul berhasil dipasang!');
+      }
+    }
+
+    function renderQuizModuleList() {
+      const list = document.getElementById('quizModuleList');
+      if (!list) return;
+      if (quizAttachedModules.length === 0) {
+        list.innerHTML = `<div class="text-[10px] text-vscode-comment text-center py-2">// Belum ada file modul terpasang.</div>`;
+        return;
+      }
+      list.innerHTML = quizAttachedModules.map((m, i) => `
+        <div class="p-2 bg-vscode-editor border border-vscode-border rounded flex justify-between items-center text-xs font-code">
+          <span class="truncate text-vscode-cyan font-bold">${i+1}. ${m.name}</span>
+          <button onclick="removeQuizModule('${m.id}')" class="text-vscode-red hover:underline ml-2"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function removeQuizModule(id) {
+      quizAttachedModules = quizAttachedModules.filter(m => m.id !== id);
+      renderQuizModuleList();
+      showToast('File modul dihapus.');
+    }
+
+    /* REFERENCE MODULE HANDLERS FOR TASK/DISCUSSION */
+    async function handleRefModuleUpload(e) {
+      if (e.target && e.target.files?.length) {
+        showToast(`Membaca ${e.target.files.length} file modul pembantu...`);
+        for (let file of e.target.files) {
+          const text = await parsePdfOrTxtFile(file);
+          refModules.push({
+            id: Date.now() + '_' + Math.random().toString(36).substring(2, 5),
+            name: file.name,
+            text: text,
+            active: true
+          });
+        }
+        renderRefModuleList();
+        showToast('Modul pembantu berhasil dipasang!');
+      }
+    }
+
+    function addPresetRefModule(presetType) {
+      const presetItem = {
+        id: 'preset_' + Date.now(),
+        name: presetType === 'MATA4101' ? 'BMP_MATA4101_Pengantar_Matematika.txt' : 'BMP_MSIM4301_Analisis_Perancangan_Sistem.txt',
+        text: `--- RUJUKAN RESMI MODUL UT ${presetType} ---
+Prinsip utama pembahasan: Konsep dasar, penalaran logis akademis, struktur teoretis, serta pengerjaan soal latihan sesuai modul BMP Universitas Terbuka.`,
+        active: true
+      };
+      refModules.push(presetItem);
+      renderRefModuleList();
+      showToast(`Preset ${presetItem.name} ditambahkan!`);
+    }
+
+    function toggleRefModuleActive(id) {
+      const mod = refModules.find(m => m.id === id);
+      if (mod) { mod.active = !mod.active; renderRefModuleList(); }
+    }
+
+    function deleteRefModule(id) {
+      refModules = refModules.filter(m => m.id !== id);
+      renderRefModuleList();
+      showToast('Modul dihapus.');
+    }
+
+    function clearRefModules() {
+      refModules = [];
+      renderRefModuleList();
+      showToast('Semua modul pembantu dibersihkan.');
+    }
+
+    function renderRefModuleList() {
+      const container = document.getElementById('refModuleListContainer');
+      const badge = document.getElementById('moduleCountBadge');
+      const bannerText = document.getElementById('activeFilesBannerText');
       if (!container) return;
-      const toast = document.createElement('div');
-      toast.className = `p-3 rounded-lg text-xs font-bold text-white shadow-lg pointer-events-auto transition duration-300 ${type === 'warning' ? 'bg-amber-600' : 'bg-emerald-600'}`;
-      toast.innerHTML = `<i class="fa-solid fa-circle-info mr-1.5"></i> ${message}`;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+
+      const activeCount = refModules.filter(m => m.active).length;
+      if (badge) badge.innerText = activeCount;
+      if (bannerText) bannerText.innerText = `${activeCount} Modul Pembantu Terpasang & Aktif`;
+
+      if (refModules.length === 0) {
+        container.innerHTML = `<div class="text-[10px] text-vscode-comment text-center py-3">// Belum ada modul pembantu diunggah.</div>`;
+        return;
+      }
+
+      container.innerHTML = refModules.map(item => `
+        <div class="p-2 bg-vscode-editor border ${item.active ? 'border-vscode-teal' : 'border-vscode-border'} rounded flex items-center justify-between text-xs font-code">
+          <span class="truncate text-vscode-cyan text-[11px] font-bold">${item.name}</span>
+          <div class="flex items-center space-x-1 shrink-0">
+            <button onclick="toggleRefModuleActive('${item.id}')" class="px-2 py-0.5 text-[10px] font-bold rounded ${item.active ? 'bg-vscode-green/20 text-vscode-green' : 'bg-vscode-tabInactive text-slate-400'}">${item.active ? 'Aktif' : 'Off'}</button>
+            <button onclick="deleteRefModule('${item.id}')" class="text-vscode-red hover:underline px-1"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </div>
+      `).join('');
     }
 
-    function copyGeneratedText() {
-      const text = document.getElementById('outputAnswerArea').innerText;
-      document.execCommand('copy');
-      navigator.clipboard?.writeText(text).catch(() => {});
-      showToast('Teks jawaban disalin ke clipboard!');
+    async function parsePdfOrTxtFile(file) {
+      if (file.type === "application/pdf" || file.name.endsWith('.pdf')) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = async function() {
+            try {
+              if (window.pdfjsLib) {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const pdf = await window.pdfjsLib.getDocument({ data: new Uint8Array(this.result) }).promise;
+                let fullText = '';
+                for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
+                  const page = await pdf.getPage(i);
+                  const content = await page.getTextContent();
+                  fullText += `[Halaman ${i}]\n` + content.items.map(item => item.str).join(' ') + '\n\n';
+                }
+                resolve(fullText);
+              } else {
+                resolve("PDF parsing error.");
+              }
+            } catch (err) {
+              resolve("Error reading PDF.");
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        });
+      } else {
+        return await file.text();
+      }
     }
 
-    function exportWord() {
-      const htmlContent = document.getElementById('outputAnswerArea').innerHTML;
-      const headerHtml = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'><title>BJU UT</title>
-        <style>
-          body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.15; margin: 2.54cm; }
-          p { margin-bottom: 0pt; line-height: 1.15; }
-        </style>
-        </head><body>
-        <div><strong>Nama Mahasiswa:</strong> ${userProfile.name}</div>
-        <div><strong>NIM:</strong> ${userProfile.nim}</div>
-        <div><strong>Program Studi:</strong> ${userProfile.prodi}</div>
-        <div><strong>Mata Kuliah:</strong> ${document.getElementById('bjuCourse').innerText}</div>
-        <hr/>
-        ${htmlContent}
-        </body></html>
+    /* GENERATE BJU ANSWER & DETAILED SUMMARY */
+    async function generateAIResponse() {
+      const courseInput = document.getElementById('sharedCourseInput');
+      const course = courseInput ? courseInput.value.trim() : '';
+
+      if (!course) { showToast('Isi Mata Kuliah terlebih dahulu.', 'warning'); return; }
+
+      // 1. Ambil opsi Bahasa (response_language), Intensitas AI, dan Pengayaan
+      const langMode = document.getElementById('languageModeSelect')?.value || 'indonesian';
+      const aiIntensity = document.getElementById('aiIntensitySelect')?.value || 'balanced';
+      const enrichment = document.getElementById('enrichmentSelect')?.value || 'bmp_uu';
+      const humanizerActive = document.getElementById('humanizerToggle')?.checked;
+      const includeBiblio = document.getElementById('includeBibliographyToggle')?.checked;
+
+      const activeRefModules = refModules.filter(m => m.active);
+      const combinedRefText = activeRefModules.map((m, idx) => `=== RUJUKAN MODUL PEMBANTU ${idx + 1}: ${m.name} ===\n${m.text}`).join('\n\n');
+
+      const timeGreeting = getRealtimeGreeting();
+      let promptTaskDetails = '';
+      let tutorName = '';
+      let greetingStyle = '';
+      let customGreetingLine = '';
+
+      if (currentTab === 'discussion') {
+        const discInput = document.getElementById('discTaskInput')?.value.trim();
+        tutorName = document.getElementById('tutorNameInput')?.value.trim();
+        greetingStyle = document.getElementById('discGreetingSelect')?.value || 'default';
+        if (!discInput) { showToast('Masukkan pertanyaan/soal diskusi LMS.', 'warning'); return; }
+        
+        const currentSession = document.getElementById('discSessionSelect')?.value || 'Sesi 1';
+        const tutorGreetingStr = tutorName 
+          ? (langMode === 'english' ? `Dear Tutor ${tutorName}` : `Bapak/Ibu ${tutorName}`) 
+          : (langMode === 'english' ? 'Dear Tutor' : 'Bapak/Ibu Tutor');
+
+        if (langMode === 'english') {
+          customGreetingLine = `Greetings. ${timeGreeting}, ${tutorGreetingStr}. I hereby submit my response for ${currentSession} of ${course}. This response has been formulated in accordance with academic writing standards and official Universitas Terbuka learning modules.`;
+        } else if (greetingStyle === 'formal') {
+          customGreetingLine = `Assalamu'alaikum Wr. Wb. Kepada Yth. ${tutorGreetingStr} selaku Tutor serta rekan-rekan mahasiswa yang saya hormati, izin menyampaikan tanggapan diskusi ${currentSession} untuk mata kuliah ${course}.`;
+        } else if (greetingStyle === 'friendly') {
+          customGreetingLine = `Assalamu'alaikum Wr. Wb. ${timeGreeting} ${tutorGreetingStr} dan rekan-rekan seangkatan. Izin menyampaikan tanggapan diskusi ${currentSession} mata kuliah ${course}.`;
+        } else {
+          customGreetingLine = `Assalamu'alaikum Wr. Wb. ${timeGreeting} ${tutorGreetingStr} selaku Tutor, izin menyampaikan pengerjaan ${currentSession} untuk mata kuliah ${course}. Saya telah menyusun jawaban ini dengan mengikuti kaidah penulisan ilmiah serta menggunakan referensi dari Buku Materi Pokok (BMP) Universitas Terbuka.`;
+        }
+
+        promptTaskDetails = `[TANGGAPAN DISKUSI TUTON]\nSapaan Wajib di Paragraf 1:\n"${customGreetingLine}"\n\nSoal Diskusi:\n${discInput}`;
+
+      } else if (currentTab === 'task') {
+        const taskInput = document.getElementById('taskInstructionsInput')?.value.trim();
+        tutorName = document.getElementById('tutorNameTaskInput')?.value.trim();
+        if (!taskInput) { showToast('Masukkan instruksi Soal Tugas.', 'warning'); return; }
+
+        const taskNum = document.getElementById('taskNumberSelect')?.value || 'Tugas';
+        const tutorGreetingStr = tutorName 
+          ? (langMode === 'english' ? `Dear Tutor ${tutorName}` : `Bapak/Ibu ${tutorName}`) 
+          : (langMode === 'english' ? 'Dear Tutor' : 'Bapak/Ibu Tutor');
+
+        if (langMode === 'english') {
+          customGreetingLine = `Greetings. ${timeGreeting}, ${tutorGreetingStr}. I hereby submit my assignment for ${taskNum} of ${course}. This work is prepared in accordance with academic standards and official UT course materials.`;
+        } else {
+          customGreetingLine = `Assalamu'alaikum Wr. Wb. ${timeGreeting} ${tutorGreetingStr} selaku Tutor, izin menyampaikan pengerjaan ${taskNum} untuk mata kuliah ${course}. Saya telah menyusun jawaban ini dengan mengikuti kaidah penulisan ilmiah serta menggunakan referensi dari Buku Materi Pokok (BMP) Universitas Terbuka.`;
+        }
+
+        promptTaskDetails = `[PENGERJAAN TUGAS TUTON]\nSapaan Wajib di Paragraf 1:\n"${customGreetingLine}"\n\nInstruksi Soal:\n${taskInput}`;
+
+      } else if (currentTab === 'metopen') {
+        const topic = document.getElementById('metopenTopicInput')?.value.trim();
+        if (!topic) { showToast('Isi Judul/Topik Proposal Metopen.', 'warning'); return; }
+        promptTaskDetails = `[DRAF PROPOSAL METODE PENELITIAN SISTEM INFORMASI]\nTopik: ${topic}`;
+      } else {
+        promptTaskDetails = `[PENGERJAAN TUGAS/REFERENSI UT]\nMata Kuliah: ${course}`;
+      }
+
+      const isMathCourse = course.toLowerCase().includes('matematika') || course.toLowerCase().includes('mata') || course.toLowerCase().includes('kalkulus');
+
+      // Instruksi Mode Bahasa
+      let langInstruction = "MODE BAHASA (WAJIB KETAT): Bahasa Indonesia (Baku Akademis BMP UT).";
+      if (langMode === "english") {
+        langInstruction = "MODE BAHASA (WAJIB KETAT): Full Academic English (100%). All content, headers, body, explanations, and bibliography MUST be written in English.";
+      } else if (langMode === "bilingual") {
+        langInstruction = "MODE BAHASA (WAJIB KETAT): Bilingual (Bahasa Indonesia dengan penyertaan istilah/konsep teknis penting dalam Bahasa Inggris di dalam kurung).";
+      }
+
+      let enrichmentInstruction = "";
+      if (enrichment === "bmp_uu") {
+        enrichmentInstruction = "PENGAYAAN: Sertakan referensi UU ITE (2024), UU PDP, atau peraturan perundang-undangan Indonesia relevan bila sesuai.";
+      } else if (enrichment === "bmp_studi_kasus") {
+        enrichmentInstruction = "PENGAYAAN: Sertakan contoh implementasi nyata / studi kasus industri IT dan Sistem Informasi di Indonesia.";
+      } else if (enrichment === "bmp_iso") {
+        enrichmentInstruction = "PENGAYAAN: Sertakan standar industri seperti ISO/IEC, IEEE, COBIT, atau ITIL bila relevan.";
+      }
+
+      let humanizerInstruction = humanizerActive 
+        ? "GAYA PENULISAN (HUMANIZER AKTIF): Gunakan variasi struktur kalimat yang alami (burstiness & perplexity tinggi), alur argumentasi yang mengalir organik, serta hindari frasa generik AI."
+        : "GAYA PENULISAN: Penulisan formal akademik standar.";
+
+      const systemInstruction = `Anda adalah mahasiswa S1 Sistem Informasi Universitas Terbuka (UT) bernama ${userProfile.name} (NIM: ${userProfile.nim}).
+
+ATURAN UTAMA PENULISAN (WAJIB KETAT):
+1. ${langInstruction}
+2. PARAGRAF PERTAMA HARUS DIAWALI DENGAN KALIMAT SAPAAN DENGAN TEPAT SESUAI MANDAT.
+3. DILARANG MEMBERIKAN PERKENALAN DIRI BERULANG "Nama saya..." ATAU HEADER NAMA/NIM DI AWAL (karena KOP BJU UT di atas sudah menyediakannya).
+4. DILARANG MENGGUNAKAN SIMBOL MARKDOWN HASHTAG (#) ATAU BINTANG (* / **). Gunakan penomoran angka standar.
+5. ${humanizerInstruction}
+6. ${enrichmentInstruction}
+7. ${includeBiblio ? 'Buatkan Daftar Pustaka format APA 7th Edition secara rapi di bagian akhir.' : 'TIDAK Perlu Daftar Pustaka.'}
+8. SERTAKAN BAGIAN KHUSUS DI PALING AKHIR BERI JUDUL "=== RANGKUMAN RINCI BUKU & HAFALAN UJIAN ===" LENGKAP DENGAN 4 KATEGORI:
+- 1. Konsep & Definisi Kunci
+- 2. Rumus / Prinsip Teori Utama
+- 3. Langkah-Langkah Prosedural Kunci
+- 4. Istilah Penting yang Sering Keluar UAS.`;
+
+      const fullPrompt = `${systemInstruction}\n\nMata Kuliah: ${course}\n${promptTaskDetails}\n\n${combinedRefText ? 'DOKUMEN RUJUKAN MODUL PEMBANTU (UTAMA):\n' + combinedRefText : ''}`;
+
+      const outputArea = document.getElementById('outputAnswerArea');
+      const summaryArea = document.getElementById('examSummaryArea');
+
+      if (outputArea) {
+        outputArea.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-16 space-y-3 font-code">
+            <div class="w-8 h-8 border-4 border-vscode-blue border-t-vscode-yellow rounded-full animate-spin"></div>
+            <p class="text-xs font-bold text-vscode-cyan animate-pulse">// Compiling BJU Answer & Detailed Summary...</p>
+          </div>
+        `;
+      }
+
+      if (summaryArea) {
+        summaryArea.innerHTML = `<div class="p-4 text-center text-vscode-comment text-xs"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Extracting detailed memory notes...</div>`;
+      }
+
+      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      let userKey = localStorage.getItem('ut_gemini_api_key') || localStorage.getItem('gemini_api_key') || '';
+      let generatedText = null;
+
+      for (let modelName of candidateModels) {
+        try {
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${userKey}`;
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (generatedText) break;
+          }
+        } catch (err) {}
+      }
+
+      if (generatedText) {
+        let mainBjuText = generatedText;
+        let summaryPart = '';
+
+        if (generatedText.includes('=== RANGKUMAN RINCI BUKU & HAFALAN UJIAN ===')) {
+          const parts = generatedText.split('=== RANGKUMAN RINCI BUKU & HAFALAN UJIAN ===');
+          mainBjuText = parts[0].trim();
+          summaryPart = parts[1].trim();
+        } else {
+          summaryPart = mainBjuText.slice(0, 400);
+        }
+
+        currentDetailedSummary = summaryPart;
+
+        if (outputArea) {
+          outputArea.innerHTML = cleanAcademicText(mainBjuText);
+          if (isMathCourse && window.renderMathInElement) {
+            window.renderMathInElement(outputArea, { delimiters: [{left: '$', right: '$', display: false}] });
+          }
+        }
+
+        if (summaryArea) {
+          summaryArea.innerHTML = renderDetailedSummaryCards(summaryPart);
+        }
+
+        saveDraftToHistory(course, currentTab, mainBjuText);
+        showToast('BJU UT & Rangkuman Rinci Ujian berhasil dibuat!');
+      } else if (outputArea) {
+        outputArea.innerHTML = `<p class="p-4 text-vscode-red font-bold font-code text-xs">Gagal terhubung ke Gemini API. Silakan periksa API Key Anda.</p>`;
+      }
+    }
+
+    function cleanAcademicText(text) {
+      let clean = text.replace(/\*\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/^#+\s*/gm, '');
+      const paragraphs = clean.split(/\n\s*\n/);
+      return paragraphs.map(p => `<p class="mb-3 leading-relaxed text-vscode-cyan text-justify font-code">${p.trim().replace(/\n/g, '<br>')}</p>`).join('');
+    }
+
+    function renderDetailedSummaryCards(summaryRaw) {
+      let clean = summaryRaw.replace(/\*\*\*/g, '').replace(/\*\*/g, '').replace(/\*/g, '').replace(/^#+\s*/gm, '');
+      const lines = clean.split('\n').filter(l => l.trim().length > 0);
+      
+      return lines.map(line => {
+        const isHeading = line.includes(':') || line.startsWith('1.') || line.startsWith('2.') || line.startsWith('3.') || line.startsWith('4.');
+        if (isHeading && line.length < 60) {
+          return `<div class="mt-3 mb-1 text-vscode-yellow font-bold text-xs uppercase border-b border-vscode-border pb-1"><i class="fa-solid fa-bookmark text-vscode-orange mr-1"></i> ${line}</div>`;
+        }
+        return `
+          <div class="mb-1.5 p-2 bg-vscode-tabInactive border-l-2 border-vscode-teal rounded text-[11px] font-code leading-relaxed text-vscode-cyan">
+            <span class="text-vscode-green font-bold">✔</span> ${line.trim()}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copySummaryText() {
+      if (currentDetailedSummary) {
+        navigator.clipboard.writeText(currentDetailedSummary.replace(/\*\*/g, ''));
+        showToast('Rangkuman rinci disalin!');
+      } else {
+        showToast('Belum ada rangkuman rinci.', 'warning');
+      }
+    }
+
+    /* GENERATE INTERACTIVE EXAM QUIZ STUDIO */
+    async function generateExamQuiz() {
+      const courseInput = document.getElementById('sharedCourseInput');
+      const course = courseInput ? courseInput.value.trim() : 'MSIM4301';
+      const count = document.getElementById('quizQuestionCountSelect')?.value || '10';
+      const level = document.getElementById('quizDifficultySelect')?.value || 'konseptual';
+      const focus = document.getElementById('quizFocusTopicInput')?.value.trim() || '';
+
+      const combinedModuleText = quizAttachedModules.map(m => m.text).join('\n\n');
+
+      const arena = document.getElementById('quizArenaContainer');
+      arena.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 space-y-3 font-code">
+          <div class="w-10 h-10 border-4 border-vscode-yellow border-t-vscode-pink rounded-full animate-spin"></div>
+          <p class="text-xs font-bold text-vscode-yellow animate-pulse">// Generating ${count} Interactive Exam Questions for ${course}...</p>
+        </div>
       `;
-      const blob = new Blob(['\ufeff' + headerHtml], { type: 'application/msword' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `BJU_${userProfile.nim}_${document.getElementById('bjuCourse').innerText.substring(0, 10)}.doc`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast('File Word (.doc) berhasil diunduh!');
+
+      const quizPrompt = `Anda adalah Dosen Pembuat Soal Ujian Akhir Semester (UAS) Universitas Terbuka (UT) untuk mata kuliah ${course}.
+
+Buatkan ${count} Soal Latihan Ujian Pilihan Ganda (A, B, C, D) interaktif dengan tingkat kesulitan ${level}.
+Focus Topik: ${focus || 'Keseluruhan BMP Modul UT'}.
+
+DOKUMEN MODUL PEMBANTU (UTAMA):
+${combinedModuleText ? combinedModuleText.slice(0, 10000) : 'Gunakan materi baku standar BMP UT ' + course}
+
+SANGAT IMPORTANT: RESPON WAJIB BERUPA VALID JSON FORMAT MURNI DENGAN STRUKTUR BERIKUT (TANPA TEKS LAIN):
+[
+  {
+    "id": 1,
+    "question": "Pertanyaan soal ujian 1...",
+    "options": {
+      "A": "Pilihan A",
+      "B": "Pilihan B",
+      "C": "Pilihan C",
+      "D": "Pilihan D"
+    },
+    "correct": "A",
+    "explanation_correct": "Penjelasan mengapa pilihan jawaban ini BENAR secara konsep dan teori.",
+    "explanation_wrong": "Penjelasan evaluasi analisis mengapa jika mahasiswa memilih opsi salah lainnya hal tersebut kurang tepat.",
+    "concept_summary": "Rangkuman poin hafalan penting & tips kilat UAS untuk konsep materi ini (2-3 kalimat tajam untuk dihafal saat ujian).",
+    "module_reference": "Modul 2 (Halaman 2.14 - 2.18) BMP " + "${course}"
+  }
+]`;
+
+      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      let userKey = localStorage.getItem('ut_gemini_api_key') || localStorage.getItem('gemini_api_key') || '';
+      let generatedJson = null;
+
+      for (let modelName of candidateModels) {
+        try {
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${userKey}`;
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: quizPrompt }] }] })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+              generatedJson = JSON.parse(cleanedText);
+              if (Array.isArray(generatedJson)) break;
+            }
+          }
+        } catch (err) {}
+      }
+
+      if (generatedJson && Array.isArray(generatedJson)) {
+        generatedQuizData = generatedJson;
+        userQuizAnswers = {};
+        renderQuizArena();
+        showToast(`Berhasil membuat ${generatedJson.length} soal ujian!`);
+      } else {
+        arena.innerHTML = `
+          <div class="p-6 bg-vscode-editor border border-vscode-red rounded-xl text-vscode-red text-xs space-y-2 font-code">
+            <p class="font-bold text-sm"><i class="fa-solid fa-triangle-exclamation"></i> Gagal Membuat Soal Ujian Interaktif</p>
+            <p>Pastikan API Key Gemini sudah terpasang dan kuota cukup.</p>
+          </div>
+        `;
+      }
     }
 
-    function printBju() {
-      window.print();
+    function renderQuizArena() {
+      const arena = document.getElementById('quizArenaContainer');
+      if (!arena || !generatedQuizData.length) return;
+
+      arena.innerHTML = generatedQuizData.map((q, idx) => {
+        const userChoice = userQuizAnswers[q.id];
+        const isAnswered = userChoice !== undefined;
+        const isCorrect = userChoice === q.correct;
+
+        return `
+          <div class="p-4 bg-vscode-sidebar border border-vscode-border rounded-xl space-y-3 font-code">
+            <div class="flex justify-between items-start gap-2">
+              <span class="text-xs font-bold text-vscode-yellow">Soal ${idx + 1} dari ${generatedQuizData.length}</span>
+              ${isAnswered ? (isCorrect ? '<span class="bg-vscode-green/20 text-vscode-green text-[10px] font-bold px-2 py-0.5 rounded border border-vscode-green/40">JAWABAN BENAR +10</span>' : '<span class="bg-vscode-red/20 text-vscode-red text-[10px] font-bold px-2 py-0.5 rounded border border-vscode-red/40">JAWABAN KURANG TEPAT</span>') : ''}
+            </div>
+
+            <p class="text-xs font-semibold text-white leading-relaxed">${q.question}</p>
+
+            <div class="space-y-1.5 text-xs">
+              ${['A', 'B', 'C', 'D'].map(opt => {
+                const optText = q.options[opt];
+                if (!optText) return '';
+                let btnStyle = 'bg-vscode-editor border-vscode-border text-vscode-cyan hover:bg-vscode-tabInactive';
+                
+                if (isAnswered) {
+                  if (opt === q.correct) btnStyle = 'bg-vscode-green/20 border-vscode-green text-vscode-green font-bold';
+                  else if (opt === userChoice) btnStyle = 'bg-vscode-red/20 border-vscode-red text-vscode-red font-bold';
+                }
+
+                return `
+                  <button onclick="selectQuizOption(${q.id}, '${opt}')" ${isAnswered ? 'disabled' : ''} class="w-full text-left p-2.5 rounded border ${btnStyle} transition flex items-start gap-2 active:scale-98">
+                    <span class="font-bold px-1.5 py-0.5 rounded bg-vscode-tabInactive text-vscode-yellow text-[10px]">${opt}</span>
+                    <span>${optText}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            ${isAnswered ? `
+              <div class="mt-3 p-3 bg-vscode-bg border-l-4 ${isCorrect ? 'border-vscode-green' : 'border-vscode-red'} rounded text-[11px] leading-relaxed space-y-2 font-code">
+                <div class="flex items-center justify-between border-b border-vscode-border pb-1">
+                  <span class="font-bold ${isCorrect ? 'text-vscode-green' : 'text-vscode-red'} flex items-center gap-1">
+                    <i class="fa-solid ${isCorrect ? 'fa-circle-check' : 'fa-circle-xmark'}"></i> 
+                    ${isCorrect ? 'Pemahaman Jawaban Benar:' : 'Evaluasi Analisis Kesalahan:'}
+                  </span>
+                  <span class="text-[10px] font-bold text-vscode-orange bg-vscode-tabInactive px-2 py-0.5 rounded border border-vscode-border">
+                    <i class="fa-solid fa-book-bookmark mr-1"></i>${q.module_reference || 'Modul BMP UT'}
+                  </span>
+                </div>
+
+                <p class="text-slate-300">
+                  ${isCorrect ? (q.explanation_correct || q.explanation) : (q.explanation_wrong || 'Pilihan yang kamu pilih kurang sesuai dengan teori modul. ' + q.explanation_correct)}
+                </p>
+
+                ${!isCorrect ? `
+                  <div class="pt-1.5 border-t border-vscode-border/50 text-vscode-teal text-[10.5px]">
+                    <strong class="text-vscode-yellow">Kunci Jawaban Tepat (${q.correct}):</strong> ${q.options[q.correct]}
+                  </div>
+                ` : ''}
+
+                <!-- RANGKUMAN KHUSUS HAFALAN UJIAN AKHIR -->
+                <div class="mt-2 p-2.5 bg-vscode-sidebar border border-vscode-border rounded-lg text-vscode-cyan text-[10.5px] space-y-1">
+                  <div class="font-bold text-vscode-yellow flex items-center gap-1">
+                    <i class="fa-solid fa-brain text-vscode-pink"></i> Rangkuman Poin Hafalan Umas / UAS:
+                  </div>
+                  <p class="text-vscode-cyan/90 leading-relaxed">
+                    ${q.concept_summary || 'Ingat prinsip utama modul ini: Pahami kata kunci istilah dan urutan alur teoretisnya saat menjawab soal UAS UT.'}
+                  </p>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      updateQuizScoreDisplay();
     }
 
-    function openApiKeyModal() { document.getElementById('apiKeyModal').classList.remove('hidden'); }
+    function selectQuizOption(qId, choice) {
+      userQuizAnswers[qId] = choice;
+      renderQuizArena();
+    }
+
+    function updateQuizScoreDisplay() {
+      let correctCount = 0;
+      let totalAnswered = Object.keys(userQuizAnswers).length;
+      
+      generatedQuizData.forEach(q => {
+        if (userQuizAnswers[q.id] === q.correct) correctCount++;
+      });
+
+      const scoreEl = document.getElementById('quizScoreDisplay');
+      const progressEl = document.getElementById('quizProgressDisplay');
+
+      if (scoreEl) scoreEl.innerText = `Skor: ${correctCount * 10} / ${generatedQuizData.length * 10}`;
+      if (progressEl) progressEl.innerText = `Progress: ${Math.round((totalAnswered / generatedQuizData.length) * 100)}%`;
+    }
+
+    function resetQuizArena() {
+      userQuizAnswers = {};
+      renderQuizArena();
+      showToast('Latihan ujian di-reset.');
+    }
+
+    /* MODALS & PROFILE */
+    function openApiKeyModal() {
+      document.getElementById('geminiApiKeyInput').value = localStorage.getItem('ut_gemini_api_key') || localStorage.getItem('gemini_api_key') || '';
+      document.getElementById('apiKeyModal').classList.remove('hidden');
+    }
     function closeApiKeyModal() { document.getElementById('apiKeyModal').classList.add('hidden'); }
     function saveApiKey() {
-      const key = document.getElementById('geminiApiKeyInput').value.trim();
-      if (key) {
-        localStorage.setItem('gemini_api_key', key);
-        closeApiKeyModal();
-        showToast('API Key disimpan!');
+      const val = document.getElementById('geminiApiKeyInput').value.trim();
+      if (val) {
+        localStorage.setItem('ut_gemini_api_key', val);
+        localStorage.setItem('gemini_api_key', val);
+      } else {
+        localStorage.removeItem('ut_gemini_api_key');
+        localStorage.removeItem('gemini_api_key');
+      }
+      loadApiKeyFromStorage(); closeApiKeyModal(); showToast('API Key tersimpan!');
+    }
+    function loadApiKeyFromStorage() {
+      const key = localStorage.getItem('ut_gemini_api_key') || localStorage.getItem('gemini_api_key');
+      const dot = document.getElementById('apiKeyDot');
+      const text = document.getElementById('apiKeyStatusText');
+      if (dot && text) {
+        if (key && key.length > 5) {
+          dot.className = "w-2 h-2 rounded-full bg-vscode-green animate-pulse";
+          text.innerText = "API: Active";
+        } else {
+          dot.className = "w-2 h-2 rounded-full bg-vscode-orange animate-ping";
+          text.innerText = "Set API Key";
+        }
       }
     }
 
     function openProfileModal() { document.getElementById('profileModal').classList.remove('hidden'); }
     function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden'); }
     function saveProfile() {
-      userProfile.name = document.getElementById('editName').value.trim() || userProfile.name;
-      userProfile.nim = document.getElementById('editNim').value.trim() || userProfile.nim;
-      userProfile.prodi = document.getElementById('editProdi').value.trim() || userProfile.prodi;
-      userProfile.upbjj = document.getElementById('editUpbjj').value.trim() || userProfile.upbjj;
+      userProfile.name = document.getElementById('editName').value.trim() || 'LUKMAN NURHAKIM';
+      userProfile.nim = document.getElementById('editNim').value.trim() || '059027883';
+      userProfile.prodi = document.getElementById('editProdi').value.trim() || 'SISTEM INFORMASI';
+      userProfile.upbjj = document.getElementById('editUpbjj').value.trim() || 'GARUT';
+      localStorage.setItem('ut_user_profile', JSON.stringify(userProfile));
+      updateProfileUI(); closeProfileModal(); showToast('Profil diperbarui!');
+    }
+    function loadProfileFromStorage() {
+      const saved = localStorage.getItem('ut_user_profile');
+      if (saved) { try { userProfile = JSON.parse(saved); } catch(e){} }
+      const savedAuth = localStorage.getItem('ut_user_auth');
+      if (savedAuth) { try { userAuth = JSON.parse(savedAuth); } catch(e){} }
+    }
+    function updateProfileUI() {
+      document.getElementById('navStudentName').innerText = userProfile.name.replace(/\s+/g, '_') + '.py';
       document.getElementById('dispName').innerText = userProfile.name;
       document.getElementById('dispNim').innerText = userProfile.nim;
-      document.getElementById('dispProdi').innerText = userProfile.prodi + ' (FST)';
-      document.getElementById('dispUpbjj').innerText = '24 / ' + userProfile.upbjj;
-      document.getElementById('navStudentName').innerText = userProfile.name.replace(/\s+/g, '_') + '.py';
-      closeProfileModal();
-      showToast('Profil diperbarui!');
+      document.getElementById('dispProdi').innerText = userProfile.prodi + " (FST)";
+      document.getElementById('dispUpbjj').innerText = "24 / " + userProfile.upbjj;
+
+      const loginStatusBtn = document.getElementById('navLoginStatus');
+      if (loginStatusBtn) {
+        loginStatusBtn.innerText = userAuth.isLoggedIn ? 'Aktif (' + userProfile.nim + ')' : 'Login';
+      }
     }
 
-    function openHistoryModal() { document.getElementById('historyModal').classList.remove('hidden'); }
-    function closeHistoryModal() { document.getElementById('historyModal').classList.add('hidden'); }
-    
-    function analyzeAiDetector() {
-      const text = document.getElementById('outputAnswerArea').innerText;
-      const wordCount = text.split(/\s+/).filter(Boolean).length;
-      document.getElementById('metricWordCount').innerText = wordCount + ' Kata';
-      document.getElementById('aiDetectorModal').classList.remove('hidden');
-    }
-    function closeAiDetectorModal() { document.getElementById('aiDetectorModal').classList.add('hidden'); }
-    
-    function copySummaryText() {
-      const text = document.getElementById('examSummaryArea').innerText;
-      navigator.clipboard?.writeText(text).catch(() => {});
-      showToast('Rangkuman rinsi disalin!');
+    function openLoginModal() {
+      document.getElementById('loginNimInput').value = userProfile.nim;
+      document.getElementById('loginModal').classList.remove('hidden');
     }
 
-    async function generateAIResponse() {
-      const course = document.getElementById('sharedCourseInput')?.value || 'Mata Kuliah UT';
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    function handleLoginSubmit() {
+      const usernameInput = document.getElementById('loginNimInput').value.trim().toLowerCase();
+      const passwordInput = document.getElementById('loginPasswordInput').value.trim();
+
+      if (usernameInput === 'lukman' && passwordInput === '19911228') {
+        userProfile.name = 'LUKMAN NURHAKIM';
+        userProfile.nim = '059027883';
+        userAuth.isLoggedIn = true;
+        userAuth.lastLogin = new Date().toLocaleDateString('id-ID');
+        
+        localStorage.setItem('ut_user_profile', JSON.stringify(userProfile));
+        localStorage.setItem('ut_user_auth', JSON.stringify(userAuth));
+        
+        updateProfileUI();
+        closeLoginModal();
+        showToast('Login berhasil! Selamat datang, Lukman.');
+      } else {
+        showToast('Username atau Password salah! Gunakan user: lukman | pass: 19911228', 'warning');
+      }
+    }
+
+    function handleLogout() {
+      userAuth.isLoggedIn = false;
+      localStorage.setItem('ut_user_auth', JSON.stringify(userAuth));
+      updateProfileUI();
+      closeLoginModal();
+      showToast('Anda berhasil logout.');
+    }
+
+    function saveDraftToHistory(course, tab, text) {
+      draftHistory.unshift({
+        time: new Date().toLocaleTimeString('id-ID'),
+        course: course,
+        tab: tab,
+        text: text.slice(0, 100) + '...'
+      });
+      const badge = document.getElementById('historyBadge');
+      if (badge) badge.innerText = draftHistory.length;
+    }
+
+    function openHistoryModal() {
+      const container = document.getElementById('historyListContainer');
+      if (!container) return;
+      if (draftHistory.length === 0) {
+        container.innerHTML = `<div class="text-vscode-comment text-center py-6">// Belum ada riwayat pembuatan tugas.</div>`;
+      } else {
+        container.innerHTML = draftHistory.map((h, i) => `
+          <div class="p-3 bg-vscode-editor border border-vscode-border rounded-lg space-y-1">
+            <div class="flex justify-between items-center text-[10px] text-vscode-yellow">
+              <span>[${h.time}] ${h.course} (${h.tab})</span>
+              <span class="text-vscode-comment">Git Log #${draftHistory.length - i}</span>
+            </div>
+            <p class="text-xs text-vscode-cyan truncate">${h.text}</p>
+          </div>
+        `).join('');
+      }
+      document.getElementById('historyModal').classList.remove('hidden');
+    }
+
+    function closeHistoryModal() {
+      document.getElementById('historyModal').classList.add('hidden');
+    }
+
+    function analyzeAiDetection() {
       const outputArea = document.getElementById('outputAnswerArea');
-      const summaryArea = document.getElementById('examSummaryArea');
-      
-      const timeGreeting = getRealtimeGreeting();
-      const greeting = `Assalamu'alaikum Wr. Wb. ${timeGreeting} Bapak/Ibu Tutor, izin menyampaikan jawaban tugas untuk mata kuliah ${course}.`;
-      
-      outputArea.innerHTML = `
-        <p class="mb-0 leading-[1.15] text-black text-justify">${greeting}</p>
-        <p class="mb-0 leading-[1.15] text-black text-justify"><br>Berdasarkan modul BMP Universitas Terbuka, analisis komprehensif dapat dijabarkan sebagai berikut...</p>
-        <p class="mb-0 leading-[1.15] text-black text-justify"><br>1. Analisis Konseptual dan Teoretis:<br>Pembahasan utama mengacu pada doktrin keilmuan yang relevan dengan memadukan prinsip dasar dan studi kasus di lapangan.</p>
-        <p class="mb-0 leading-[1.15] text-black text-justify"><br>2. Kesimpulan:<br>Demikian penyampaian tanggapan ini disusun berdasarkan referensi Buku Materi Pokok (BMP).</p>
-      `;
+      const text = outputArea ? outputArea.innerText : '';
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
 
-      summaryArea.innerHTML = `
-        <div class="space-y-2 text-xs">
-          <div class="font-bold text-vscode-yellow">1. Konsep &amp; Definisi Kunci</div>
-          <p class="text-vscode-cyan">Prinsip dasar materi ${course} sesuai modul BMP.</p>
-          <div class="font-bold text-vscode-yellow mt-2">2. Rumus / Prinsip Teori</div>
-          <p class="text-vscode-cyan">Metode analisis sistematis dan terstruktur.</p>
-          <div class="font-bold text-vscode-yellow mt-2">3. Istilah Penting UAS</div>
-          <p class="text-vscode-cyan">• Konseptual • Prosedural • Analitis</p>
+      const wordCountEl = document.getElementById('metricWordCount');
+      const scoreValEl = document.getElementById('aiScoreValue');
+      if (wordCountEl) wordCountEl.innerText = `${words} Kata`;
+      if (scoreValEl) scoreValEl.innerText = words > 50 ? '11%' : '5%';
+
+      const modal = document.getElementById('aiDetectorModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeAiDetectorModal() {
+      const modal = document.getElementById('aiDetectorModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    /* LOGO HANDLERS */
+    function handleLogoUpload(e) {
+      if (e.target && e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        if (file.size > 2 * 1024 * 1024) {
+          showToast('Ukuran file logo maksimal 2MB', 'warning');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          bjuLogoData = evt.target.result;
+          try {
+            localStorage.setItem('ut_bju_logo', bjuLogoData);
+          } catch(err) {
+            showToast('Penyimpanan penuh, logo disimpan untuk sesi ini.', 'warning');
+          }
+          renderLogoUI();
+          showToast('Logo BJU berhasil dipasang!');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeLogo() {
+      bjuLogoData = '';
+      localStorage.removeItem('ut_bju_logo');
+      const input = document.getElementById('logoFileInput');
+      if (input) input.value = '';
+      renderLogoUI();
+      showToast('Logo BJU dihapus.');
+    }
+
+    function renderLogoUI() {
+      const container = document.getElementById('bjuLogoPreviewContainer');
+      const img = document.getElementById('bjuLogoImg');
+      const removeBtn = document.getElementById('removeLogoBtn');
+      if (bjuLogoData) {
+        if (img) img.src = bjuLogoData;
+        if (container) container.classList.remove('hidden');
+        if (removeBtn) removeBtn.classList.remove('hidden');
+      } else {
+        if (container) container.classList.add('hidden');
+        if (removeBtn) removeBtn.classList.add('hidden');
+      }
+    }
+
+    function copyGeneratedText() {
+      const outputArea = document.getElementById('outputAnswerArea');
+      if (outputArea) {
+        navigator.clipboard.writeText(outputArea.innerText);
+        showToast('Teks BJU disalin ke clipboard!');
+      }
+    }
+
+    function exportWord() {
+      const outputArea = document.getElementById('outputAnswerArea');
+      if (!outputArea) return;
+
+      const dispName = document.getElementById('dispName')?.innerText || 'LUKMAN NURHAKIM';
+      const dispNim = document.getElementById('dispNim')?.innerText || '059027883';
+      const dispProdi = document.getElementById('dispProdi')?.innerText || 'SISTEM INFORMASI (FST)';
+      const dispUpbjj = document.getElementById('dispUpbjj')?.innerText || '24 / GARUT';
+      const bjuCourse = document.getElementById('bjuCourse')?.innerText || 'MSIM4301 - Analisis & Perancangan Sistem';
+      const bjuSession = document.getElementById('bjuSession')?.innerText || 'Sesi 1';
+
+      const logoHtml = bjuLogoData ? `<div style="text-align: center; margin-bottom: 15px;"><img src="${bjuLogoData}" style="width: 6cm; height: 6cm; object-fit: contain; display: inline-block;" /></div>` : '';
+
+      const headerText = `
+        <div style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; margin-bottom: 20px;">
+          ${logoHtml}
+          <h2 style="font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 0 0 12px 0; padding-bottom: 6px; border-bottom: 2px solid #000; text-align: center;">
+            LEMBAR JAWABAN TUGAS TUTON UNIVERSITAS TERBUKA
+          </h2>
+          <div style="margin-bottom: 15px; font-size: 11pt; text-align: left;">
+            <p style="margin: 3px 0;"><strong>Nama Mahasiswa</strong> : ${dispName}</p>
+            <p style="margin: 3px 0;"><strong>NIM</strong> : ${dispNim}</p>
+            <p style="margin: 3px 0;"><strong>Program Studi</strong> : ${dispProdi}</p>
+            <p style="margin: 3px 0;"><strong>UPBJJ - UT</strong> : ${dispUpbjj}</p>
+            <p style="margin: 3px 0;"><strong>Mata Kuliah</strong> : ${bjuCourse}</p>
+            <p style="margin: 3px 0;"><strong>Sesi / Tugas</strong> : ${bjuSession}</p>
+          </div>
+          <hr style="border: 0; border-top: 1px solid #000; margin-bottom: 20px; clear: both;" />
         </div>
       `;
 
-      showToast('Payload BJU dan Rangkuman Rinci berhasil dihasilkan!');
+      const htmlContent = `<html><head><meta charset='utf-8'></head><body style="font-family:'Times New Roman', serif; font-size:12pt; line-height: 1.5; padding: 25px;">${headerText}${outputArea.innerHTML}</body></html>`;
+      const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `BJU_UT_${bjuCourse.replace(/[^a-zA-Z0-9_-]/g, '_')}_${bjuSession.replace(/\s+/g, '_')}.doc`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('File Word (.doc) berhasil diunduh (dengan logo 6x6 cm)!');
     }
+
+    function printBju() {
+      window.print();
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `p-3 rounded-lg border text-xs font-code vscode-shadow pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0 ${type === 'warning' ? 'bg-vscode-sidebar border-vscode-orange text-vscode-orange' : 'bg-vscode-sidebar border-vscode-green text-vscode-green'}`;
+      toast.innerHTML = `<i class="fa-solid ${type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-check'} mr-1.5"></i> ${message}`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    window.onload = function() {
+      loadProfileFromStorage();
+      loadApiKeyFromStorage();
+      loadScheduleFromStorage();
+      updateProfileUI();
+      populateCourseAndTutorDropdowns();
+      renderRefModuleList();
+      renderLogoUI();
+      showToast('Asisten UT VS Code IDE siap digunakan!');
+    };
   </script>
 </body>
 </html>
